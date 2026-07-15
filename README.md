@@ -11,7 +11,7 @@ pnpm install
 pnpm dev
 ```
 
-打开 [http://localhost:3000](http://localhost:3000)。
+打开 [http://localhost:3001](http://localhost:3001)。本项目将 3001 固定为本地开发端口，避免与其他项目占用的 3000 端口冲突。
 
 ## 验证命令
 
