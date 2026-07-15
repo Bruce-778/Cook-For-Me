@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cook for Me
 
-## Getting Started
+面向年轻人和做饭新手的中文家常菜制作网站。首版是完全本地可运行的内容型应用：菜谱、分类、精选与排行数据均内置在项目中，收藏、食材勾选和烹饪进度保存在浏览器本地，不需要数据库、账号或 AI 服务。
 
-First, run the development server:
+## 本地启动
+
+环境要求：Node.js 22+、pnpm 11+。
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 [http://localhost:3000](http://localhost:3000)。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 验证命令
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm lint
+pnpm typecheck
+pnpm build
+```
 
-## Learn More
+## 当前页面
 
-To learn more about Next.js, take a look at the following resources:
+- `/`：原创暖橙色响应式首页
+- `/discover`：菜名/食材搜索、分类、时间和排序筛选
+- `/recipes/[slug]`：菜谱详情、人数换算和食材勾选
+- `/cook/[slug]`：沉浸式逐步烹饪、计时和进度恢复
+- `/ranking`：最近热门排行
+- `/favorites`：浏览器本地收藏
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 数据与隐私
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 菜谱数据位于 `src/lib/recipes.ts`。
+- 收藏、勾选、点赞反馈和烹饪进度只写入当前浏览器的 localStorage。
+- 当前没有登录、用户画像、AI、远程数据库或分析埋点。
+- 示例菜品摄影通过 Unsplash 图片 CDN 加载；正式发布前可替换为自有或统一授权的本地素材。
 
-## Deploy on Vercel
+## Git worktrees
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+本项目采用多个独立 worktree 并行开发：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `feature/cook-for-me-site`：设计系统、首页、发现与最终整合
+- `feature/recipe-detail`：菜谱详情
+- `feature/cooking-mode`：烹饪模式
+- `feature/library-pages`：收藏与排行
+
+各功能验证通过后合并回 `feature/cook-for-me-site`，主目录 `main` 保持稳定。
+
+## 后续上线
+
+首版上线只需要构建并托管当前 Next.js 项目，不依赖外部密钥。未来如需跨设备收藏、真实全站点赞排行或 AI 能力，再增加独立服务端数据适配层；现有页面和本地启动方式无需改变。

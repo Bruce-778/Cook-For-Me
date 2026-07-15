@@ -62,6 +62,54 @@ export const recipes: Recipe[] = [
   { slug: "pumpkin-millet-porridge", title: "南瓜小米粥", summary: "细腻香甜、暖胃好消化，早晨喝一碗很舒服。", image: images.dessert, category: "粥品甜点", tags: ["早餐", "老人餐", "清淡"], difficulty: 1, prepMinutes: 5, cookMinutes: 35, servings: 3, likes: 524, weeklyLikes: 69, color: "#FBE1A8", ingredients: [{ name: "南瓜", amount: 300, unit: "g", note: "去皮切 2cm 块", group: "主料" }, { name: "小米", amount: 100, unit: "g", note: "淘洗 2 次", group: "主料" }, { name: "清水", amount: 1000, unit: "ml", group: "辅料" }], steps: commonSteps.simple, tips: ["小米下锅后转小火，锅盖留一道缝防止溢锅。"] },
 ];
 
+const additionalSeeds: Array<[string, string, string, keyof typeof images, string, string[], number, number, 1 | 2 | 3 | 4 | 5, string, number, string]> = [
+  ["mapo-tofu", "麻婆豆腐", "麻辣鲜香，豆腐滑嫩，汤汁浓郁但不油腻。", "tomato", "家常快炒", ["下饭菜", "香辣"], 8, 12, 2, "嫩豆腐", 400, "g"],
+  ["cola-chicken-wings", "可乐鸡翅", "咸甜入味、颜色红亮，大人小孩都喜欢。", "chicken", "家常荤菜", ["下饭菜", "新手友好"], 8, 25, 2, "鸡中翅", 500, "g"],
+  ["sweet-sour-pork", "糖醋里脊", "外酥里嫩，酸甜汁均匀裹住每一块肉。", "chicken", "家常荤菜", ["酸甜", "家庭聚餐"], 18, 20, 3, "猪里脊", 400, "g"],
+  ["shredded-potato", "酸辣土豆丝", "爽脆酸辣、十分钟快炒，特别适合配米饭。", "greens", "时令蔬菜", ["10分钟", "素食"], 8, 6, 1, "土豆", 400, "g"],
+  ["hand-torn-cabbage", "手撕包菜", "锅气十足，菜叶脆嫩，家常快炒不出水。", "greens", "时令蔬菜", ["15分钟", "素食"], 6, 7, 2, "包菜", 500, "g"],
+  ["boiled-shrimp", "白灼虾", "清甜弹嫩，用最简单的方式保留海鲜本味。", "fish", "海鲜", ["清淡", "15分钟"], 8, 5, 1, "鲜虾", 500, "g"],
+  ["garlic-scallops", "蒜蓉粉丝蒸扇贝", "蒜香扑鼻，粉丝吸满鲜甜汤汁。", "fish", "海鲜", ["家庭聚餐", "蒸菜"], 15, 10, 3, "扇贝", 8, "个"],
+  ["seaweed-egg-soup", "紫菜蛋花汤", "清鲜暖胃，蛋花轻盈，五分钟就能上桌。", "soup", "汤羹", ["5分钟", "新手友好"], 3, 4, 1, "鸡蛋", 2, "个"],
+  ["corn-rib-soup", "玉米排骨汤", "汤色清亮，玉米清甜，排骨软嫩。", "soup", "汤羹", ["家庭聚餐", "清淡"], 15, 60, 2, "排骨", 500, "g"],
+  ["yangchun-noodles", "阳春面", "一碗清汤细面，葱香和猪油香恰到好处。", "noodles", "面食主食", ["一人食", "10分钟"], 3, 7, 1, "细面", 150, "g"],
+  ["egg-fried-rice", "黄金蛋炒饭", "米粒分明、蛋香均匀，剩米饭的最好归宿。", "noodles", "面食主食", ["一人食", "15分钟"], 5, 8, 2, "隔夜米饭", 300, "g"],
+  ["beef-noodle-soup", "家常牛肉面", "牛肉酥软，汤头醇厚，周末慢炖一锅。", "noodles", "面食主食", ["暖胃", "家庭聚餐"], 20, 80, 3, "牛腩", 600, "g"],
+  ["silver-ear-soup", "银耳莲子羹", "软糯清甜，银耳出胶，冷喝热喝都舒服。", "dessert", "粥品甜点", ["甜品", "清淡"], 15, 70, 2, "干银耳", 25, "g"],
+  ["brown-sugar-cake", "红糖发糕", "蓬松柔软，红糖香温暖，早餐也很合适。", "dessert", "粥品甜点", ["甜品", "蒸制"], 50, 25, 3, "中筋面粉", 300, "g"],
+  ["mango-sago", "芒果西米露", "果香清新，椰奶顺滑，冰冰凉凉不腻口。", "dessert", "粥品甜点", ["甜品", "夏日"], 10, 20, 2, "芒果", 400, "g"],
+  ["black-pepper-beef", "黑椒牛柳", "牛肉滑嫩、黑椒浓郁，彩椒保持爽脆。", "chicken", "家常荤菜", ["下饭菜", "快炒"], 15, 8, 3, "牛里脊", 350, "g"],
+  ["braised-pork", "家常红烧肉", "色泽红亮、肥而不腻，慢火收出浓厚酱香。", "chicken", "家常荤菜", ["经典家常", "家庭聚餐"], 15, 70, 3, "五花肉", 600, "g"],
+  ["steamed-chicken-mushroom", "香菇蒸鸡", "鸡肉嫩滑、香菇鲜浓，蒸好直接上桌。", "chicken", "家常荤菜", ["蒸菜", "清淡"], 15, 20, 2, "鸡腿肉", 500, "g"],
+  ["celery-lily", "西芹百合", "颜色清新，西芹爽脆，百合清甜。", "greens", "时令蔬菜", ["减脂餐", "素食"], 10, 6, 2, "西芹", 300, "g"],
+  ["baby-bok-choy-mushroom", "香菇青菜", "青菜翠绿、香菇入味，简单却不寡淡。", "greens", "时令蔬菜", ["素食", "新手友好"], 8, 7, 1, "上海青", 400, "g"],
+  ["home-style-tofu", "家常豆腐", "豆腐外香里嫩，彩椒木耳丰富又下饭。", "greens", "家常快炒", ["下饭菜", "半荤素"], 12, 10, 2, "北豆腐", 450, "g"],
+  ["steamed-egg", "肉末蒸蛋", "蛋羹细滑无蜂窝，肉末咸香很适合拌饭。", "tomato", "家常快炒", ["老人餐", "新手友好"], 10, 12, 2, "鸡蛋", 3, "个"],
+  ["lemon-seabass", "柠檬香煎鲈鱼", "鱼皮焦脆、鱼肉鲜嫩，柠檬带来清爽香气。", "fish", "海鲜", ["减脂餐", "西式家常"], 12, 12, 3, "鲈鱼柳", 400, "g"],
+  ["braised-prawn", "油焖大虾", "虾肉弹嫩、酱汁红亮，葱姜香气充分。", "fish", "海鲜", ["下饭菜", "家庭聚餐"], 10, 12, 2, "大虾", 600, "g"],
+  ["clams-loofah-soup", "蛤蜊丝瓜汤", "蛤蜊鲜甜，丝瓜柔嫩，汤清而有味。", "soup", "汤羹", ["夏日", "清淡"], 12, 10, 2, "蛤蜊", 500, "g"],
+  ["tomato-beef-soup", "番茄牛腩汤", "番茄酸甜浓郁，牛腩炖到轻轻一夹就散。", "soup", "汤羹", ["暖胃", "家庭聚餐"], 18, 90, 3, "牛腩", 600, "g"],
+  ["chicken-salad", "香煎鸡胸沙拉", "蛋白质充足、蔬菜清脆，饱腹但不负担。", "greens", "时令蔬菜", ["减脂餐", "高蛋白"], 15, 12, 2, "鸡胸肉", 300, "g"],
+  ["oat-banana-pancake", "香蕉燕麦松饼", "不加精制糖，柔软香甜，早餐快速完成。", "dessert", "粥品甜点", ["早餐", "新手友好"], 8, 8, 1, "香蕉", 2, "根"],
+  ["yam-pork-porridge", "山药瘦肉粥", "米粥绵软，山药细腻，清淡又有营养。", "soup", "粥品甜点", ["清淡", "老人餐"], 12, 45, 2, "大米", 120, "g"],
+  ["rice-cooker-chicken-rice", "电饭煲鸡腿饭", "饭菜一锅出，鸡肉嫩、米饭吸满酱香。", "chicken", "面食主食", ["懒人餐", "一人食"], 15, 35, 2, "鸡腿", 2, "只"],
+  ["sesame-cold-noodles", "麻酱凉面", "芝麻酱香浓，黄瓜爽脆，夏天吃格外舒服。", "noodles", "面食主食", ["一人食", "夏日"], 10, 8, 1, "鲜面条", 200, "g"],
+  ["red-bean-rice-cake", "红豆糯米糕", "软糯微甜，红豆颗粒带来温柔口感。", "dessert", "粥品甜点", ["甜品", "家庭分享"], 20, 35, 3, "糯米粉", 250, "g"],
+];
+
+additionalSeeds.forEach(([slug, title, summary, imageKey, category, tags, prepMinutes, cookMinutes, difficulty, mainName, amount, unit], index) => {
+  recipes.push({
+    slug, title, summary, image: images[imageKey], category, tags, prepMinutes, cookMinutes, difficulty,
+    servings: category === "面食主食" ? 2 : 3,
+    likes: 480 - index * 7,
+    weeklyLikes: 64 - Math.floor(index / 2),
+    color: ["#FFE2D1", "#E9F3E4", "#DFF2F8", "#FBE8B8"][index % 4],
+    ingredients: [{ name: mainName, amount, unit, group: "主料" }, ...baseIngredients.slice(1)],
+    steps: commonSteps.simple,
+    tips: ["下锅前把食材和调料全部称量好，烹饪过程会更从容。", "完成状态比固定时间更重要，请同时观察颜色和质地。"],
+  });
+});
+
 export const ingredientShortcuts = ["鸡蛋", "番茄", "土豆", "胡萝卜", "青椒", "豆腐", "鸡肉", "面条"];
 export const categories = ["全部", "家常快炒", "家常荤菜", "时令蔬菜", "面食主食", "海鲜", "汤羹", "粥品甜点"];
 export const getRecipe = (slug: string) => recipes.find((recipe) => recipe.slug === slug);
