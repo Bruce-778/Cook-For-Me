@@ -272,7 +272,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
       </header>
 
       <main className="mx-auto grid w-full max-w-[1240px] gap-5 px-4 py-5 md:px-6 md:py-8 lg:grid-cols-[230px_minmax(0,1fr)_270px] lg:gap-7 lg:px-8">
-        <aside className="order-2 rounded-[24px] border bg-card p-4 card-shadow lg:order-1 lg:sticky lg:top-24 lg:h-fit">
+        <aside className="order-2 min-w-0 rounded-[24px] border bg-card p-4 card-shadow lg:order-1 lg:sticky lg:top-24 lg:h-fit">
           <div className="mb-3 flex items-center gap-2 font-black"><ListChecks className="size-5 text-primary" />全部步骤</div>
           <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible">
             {recipe.steps.map((item, index) => {
@@ -341,7 +341,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
           </div>
         </section>
 
-        <aside className="order-3 space-y-4 lg:sticky lg:top-24 lg:h-fit">
+        <aside className="order-3 min-w-0 space-y-4 lg:sticky lg:top-24 lg:h-fit">
           {baseTimerSeconds > 0 && (
             <div className="rounded-[24px] border bg-card p-5 card-shadow">
               <p className="mb-4 flex items-center gap-2 font-black"><AlarmClock className="size-5 text-primary" />步骤计时器</p>

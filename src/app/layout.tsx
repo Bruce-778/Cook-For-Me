@@ -16,7 +16,7 @@ export const viewport: Viewport = { themeColor: "#FFF8ED", colorScheme: "light" 
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" className={geistMono.variable}>
+    <html lang="zh-CN" className={geistMono.variable} data-scroll-behavior="smooth">
       <body className="min-h-screen overflow-x-hidden pb-20 md:pb-0">
         <SiteHeader />
         <main>{children}</main>

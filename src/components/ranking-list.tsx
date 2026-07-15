@@ -76,6 +76,7 @@ function PodiumCard({ recipe, rank }: { recipe: Recipe; rank: number }) {
           alt={recipe.title}
           fill
           priority={rank === 1}
+          loading={rank === 1 ? "eager" : "lazy"}
           sizes={rank === 1 ? "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 42vw" : "(max-width: 768px) 100vw, 33vw"}
           className="object-cover transition duration-500 group-hover:scale-[1.035]"
         />
