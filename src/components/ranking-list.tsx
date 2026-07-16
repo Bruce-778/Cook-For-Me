@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ChefHat, Clock3, Crown, Heart, Medal, Sparkles, Star } from "lucide-react";
+import { ChefHat, Clock3, Crown, Heart, Medal, Sparkles } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Recipe, totalMinutes } from "@/lib/recipes";
 import { cn } from "@/lib/utils";
+import { DifficultyStars } from "@/components/difficulty-stars";
 
 const podiumStyles = [
   {
@@ -67,38 +67,27 @@ function PodiumCard({ recipe, rank }: { recipe: Recipe; rank: number }) {
         rank === 1 && "md:col-span-2 lg:col-span-1 lg:row-span-2",
       )}
     >
-      <Link
-        href={`/recipes/${recipe.slug}`}
-        className={cn("relative block overflow-hidden", rank === 1 ? "aspect-[16/11] lg:aspect-auto lg:h-[390px]" : "aspect-[16/10]")}
-      >
-        <Image
-          src={recipe.image}
-          alt={recipe.title}
-          fill
-          priority={rank === 1}
-          loading={rank === 1 ? "eager" : "lazy"}
-          sizes={rank === 1 ? "(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 42vw" : "(max-width: 768px) 100vw, 33vw"}
-          className="object-cover transition duration-500 group-hover:scale-[1.035]"
-        />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#2d1c16]/80 to-transparent" />
-        <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-[#fffdf8]/92 px-3 py-2 backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-4 p-5 pb-0 md:p-6 md:pb-0">
+        <div className="flex items-center gap-2 rounded-full bg-[#fffdf8]/92 px-3 py-2">
           <RankBadge rank={rank} compact />
           <div>
             <p className="text-[11px] font-bold text-muted-foreground">{style.label}</p>
             <p className="text-sm font-black">{style.badge}</p>
           </div>
         </div>
-        <p className="absolute bottom-4 left-5 text-sm font-bold text-white">本周 {recipe.weeklyLikes} 人喜欢</p>
-      </Link>
+        <p className="text-sm font-bold text-primary">本周 {recipe.weeklyLikes} 人喜欢</p>
+      </div>
       <div className="relative p-5 md:p-6">
         <FavoriteButton slug={recipe.slug} className="absolute -top-6 right-5 size-11" />
         <Link href={`/recipes/${recipe.slug}`} className="block pr-10">
           <h2 className={cn("font-black tracking-tight", rank === 1 ? "text-2xl md:text-3xl" : "text-xl md:text-2xl")}>{recipe.title}</h2>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{recipe.summary}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5" aria-label={`${recipe.title}特点`}>
+            {recipe.featureTags.map((tag) => <span key={tag} className="rounded-full bg-white/65 px-2.5 py-1 text-xs font-bold text-[#8f472d]">{tag}</span>)}
+          </div>
         </Link>
         <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-muted-foreground">
           <span className="flex items-center gap-1.5"><Clock3 className="size-4 text-primary" />{totalMinutes(recipe)} 分钟</span>
-          <span className="flex items-center gap-1.5"><Star className="size-4 fill-[#f3c75b] text-[#f3c75b]" />难度 {recipe.difficulty}</span>
+          <DifficultyStars difficulty={recipe.difficulty} />
           <span className="flex items-center gap-1.5"><Heart className="size-4 text-primary" />累计 {recipe.likes}</span>
         </div>
       </div>
@@ -133,14 +122,11 @@ export function RankingList({ recipes }: { recipes: Recipe[] }) {
               return (
                 <li key={recipe.slug} className="group flex items-center gap-3 rounded-[22px] border bg-card p-3 card-shadow transition hover:-translate-y-0.5 hover:border-primary/25 sm:gap-4 sm:p-4">
                   <RankBadge rank={rank} compact />
-                  <Link href={`/recipes/${recipe.slug}`} className="relative aspect-square w-20 shrink-0 overflow-hidden rounded-[17px] bg-muted sm:w-24">
-                    <Image src={recipe.image} alt={recipe.title} fill sizes="96px" className="object-cover transition duration-500 group-hover:scale-105" />
-                  </Link>
                   <Link href={`/recipes/${recipe.slug}`} className="min-w-0 flex-1 py-1">
                     <h3 className="truncate text-base font-black sm:text-lg">{recipe.title}</h3>
                     <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <span>{totalMinutes(recipe)} 分钟</span>
-                      <span>难度 {recipe.difficulty}</span>
+                      <DifficultyStars difficulty={recipe.difficulty} />
                     </p>
                     <p className="mt-2 text-xs font-bold text-primary sm:text-sm">本周 {recipe.weeklyLikes} 人喜欢 <span className="font-medium text-muted-foreground">· 累计 {recipe.likes}</span></p>
                   </Link>

@@ -33,7 +33,7 @@ export default async function Home() {
             <ArrowRight className="ml-1 size-4 text-primary transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
-        <div className="relative mt-8 h-[260px] md:mt-0 md:h-[420px]"><div className="absolute -right-28 -top-28 size-80 rounded-full bg-[#f0643a]/10" /><div className="absolute inset-3 rotate-2 overflow-hidden rounded-[38%_62%_58%_42%/45%_42%_58%_55%] border-[10px] border-white/60 bg-[#f4c95d]/25 shadow-[0_25px_60px_rgba(105,57,30,.18)] md:inset-7"><Image src={recipes[0].image} alt="番茄炒蛋" fill priority sizes="(max-width:768px) 90vw, 50vw" className="object-cover" /></div><span className="absolute left-1 top-4 rotate-[-10deg] text-5xl md:text-7xl">🍅</span><span className="absolute bottom-2 right-4 rotate-12 text-5xl md:text-7xl">🥚</span></div>
+        <div className="relative mt-8 h-[260px] md:mt-0 md:h-[420px]"><div className="absolute -right-28 -top-28 size-80 rounded-full bg-[#f0643a]/10" /><div className="absolute inset-3 rotate-2 overflow-hidden rounded-[38%_62%_58%_42%/45%_42%_58%_55%] border-[10px] border-white/60 bg-[#f4c95d]/25 shadow-[0_25px_60px_rgba(105,57,30,.18)] md:inset-7"><Image src="/images/hero/steak-grilled.jpg" alt="香煎牛排配烤蔬菜" fill priority sizes="(max-width:768px) 90vw, 50vw" className="object-cover" /></div><span className="absolute left-1 top-4 rotate-[-10deg] text-5xl md:text-7xl">🥩</span><span className="absolute bottom-2 right-4 rotate-12 text-5xl md:text-7xl">🌿</span></div>
       </div></div>
     </section>
 

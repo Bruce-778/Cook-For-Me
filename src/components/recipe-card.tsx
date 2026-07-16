@@ -1,10 +1,29 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Clock3, Star } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import { Recipe, totalMinutes } from "@/lib/recipes";
 import { FavoriteButton } from "./favorite-button";
 import { LikeButton } from "./like-button";
+import { DifficultyStars } from "./difficulty-stars";
 
-export function RecipeCard({ recipe, priority = false }: { recipe: Recipe; priority?: boolean }) {
-  return <article className="group overflow-hidden rounded-[22px] border border-border/80 bg-card card-shadow transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,67,42,.13)]"><Link href={`/recipes/${recipe.slug}`} className="relative block aspect-[4/3] overflow-hidden bg-muted"><Image src={recipe.image} alt={`${recipe.title}成品图`} fill sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 280px" className="object-cover transition duration-500 group-hover:scale-[1.04]" priority={priority} /><span className="absolute left-3 top-3 rounded-full bg-[#3a251e]/82 px-3 py-1.5 text-xs font-bold text-white backdrop-blur"><Clock3 className="mr-1 inline size-3.5" />{totalMinutes(recipe)} 分钟</span></Link><div className="relative p-3.5 sm:p-4"><div className="absolute -top-7 right-3 flex gap-1.5"><LikeButton slug={recipe.slug} initialCount={recipe.likes} compact /><FavoriteButton slug={recipe.slug} className="size-10" /></div><Link href={`/recipes/${recipe.slug}`}><div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-black tracking-tight sm:text-lg">{recipe.title}</h3>{recipe.editorialStatus==="reviewed"&&<span className="rounded-full bg-[#edf5e8] px-2 py-1 text-[10px] font-black text-[#456341]">步骤已复核</span>}</div><p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:text-sm">{recipe.summary}</p><div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground"><span className="flex items-center gap-1"><Star className="size-3.5 fill-[#f3c75b] text-[#f3c75b]" />难度 {recipe.difficulty}</span><span>{recipe.weeklyLikes ? `本周 ${recipe.weeklyLikes} 人点赞` : "本周还没有点赞"}</span></div></Link></div></article>;
+export function RecipeCard({ recipe }: { recipe: Recipe; priority?: boolean }) {
+  return (
+    <article className="group relative flex min-h-[250px] flex-col overflow-hidden rounded-[22px] border border-border/80 bg-card p-4 card-shadow transition duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_18px_40px_rgba(111,67,42,.13)] sm:min-h-[270px] sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff2e8] px-3 py-1.5 text-xs font-black text-[#8f472d]"><Clock3 className="size-3.5" />{totalMinutes(recipe)} 分钟</span>
+        <span className="text-xs font-bold text-muted-foreground">{recipe.category}</span>
+      </div>
+      <Link href={`/recipes/${recipe.slug}`} className="mt-5 block">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-xl font-black tracking-tight sm:text-2xl">{recipe.title}</h3>
+        </div>
+        <div className="mt-4 flex min-h-16 flex-wrap content-start gap-2" aria-label={`${recipe.title}特点`}>
+          {recipe.featureTags.map(tag => <span key={tag} className="rounded-full bg-[#fff2e8] px-3 py-1.5 text-xs font-bold text-[#a74e2b]">{tag}</span>)}
+        </div>
+      </Link>
+      <div className="mt-auto flex items-end justify-between gap-3 border-t pt-4">
+        <div className="space-y-1.5 text-xs text-muted-foreground"><DifficultyStars difficulty={recipe.difficulty} /><p>{recipe.weeklyLikes ? `本周 ${recipe.weeklyLikes} 人点赞` : "本周还没有点赞"}</p></div>
+        <div className="flex gap-1.5"><LikeButton slug={recipe.slug} initialCount={recipe.likes} compact /><FavoriteButton slug={recipe.slug} className="size-10" /></div>
+      </div>
+    </article>
+  );
 }

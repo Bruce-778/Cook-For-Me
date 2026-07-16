@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ChefHat, CircleAlert, Clock3, Droplets, Flame, Lightbulb, PlayCircle, ShieldCheck, Sparkles, ThermometerSun, Utensils } from "lucide-react";
@@ -7,6 +6,7 @@ import { RecipeDetailClient } from "@/components/recipe-detail-client";
 import { RecipeCard } from "@/components/recipe-card";
 import { getRecipe, recipes, totalMinutes } from "@/lib/recipes";
 import { getLikeCountMap } from "@/lib/likes";
+import { DifficultyStars } from "@/components/difficulty-stars";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${recipe.title}做法`,
     description: `${recipe.summary} ${recipe.servings}人份，准备${recipe.prepMinutes}分钟，烹饪${recipe.cookMinutes}分钟。`,
     alternates: { canonical: `/recipes/${recipe.slug}` },
-    openGraph: { title: `${recipe.title}做法｜Cook for Me`, description: recipe.summary, type: "article", ...(recipe.imageVerified?{images: [{ url: recipe.image, alt: recipe.title }]}:{}) },
+    openGraph: { title: `${recipe.title}做法｜Cook for Me`, description: recipe.summary, type: "article" },
     robots: recipe.editorialStatus==="reviewed"?undefined:{index:false,follow:true},
   };
 }
@@ -47,7 +47,6 @@ export default async function RecipePage({ params }: PageProps) {
     "@type": "Recipe",
     name: recipe.title,
     description: recipe.summary,
-    image: [recipe.image],
     recipeYield: `${recipe.servings}人份`,
     prepTime: `PT${recipe.prepMinutes}M`,
     cookTime: `PT${recipe.cookMinutes}M`,
@@ -62,24 +61,19 @@ export default async function RecipePage({ params }: PageProps) {
       <section className="overflow-hidden border-b bg-[radial-gradient(circle_at_85%_12%,#ffe1c9_0,transparent_30%),linear-gradient(180deg,#fff8ed_0%,#fffdf8_100%)]">
         <div className="page-shell py-5 md:py-10">
           <Link href="/discover" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4" />返回发现菜谱</Link>
-          <div className="grid items-center gap-7 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)] lg:gap-12">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] border bg-muted soft-shadow lg:aspect-[16/10]">
-              <Image src={recipe.image} alt={`${recipe.title}成品`} fill priority loading="eager" sizes="(max-width: 1024px) 100vw, 720px" className="object-cover" />
-              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#3a251e]/45 to-transparent" />
-              <span className="absolute bottom-4 left-4 rounded-full bg-card/92 px-4 py-2 text-sm font-black text-primary backdrop-blur">{recipe.category}</span>
-            </div>
+          <div className="max-w-4xl py-3 sm:py-6 lg:py-8">
             <div>
-              <div className="mb-4 flex flex-wrap gap-2">{recipe.tags.map((tag) => <span key={tag} className="rounded-full bg-secondary px-3 py-1.5 text-xs font-bold text-secondary-foreground">{tag}</span>)}</div>
+              <div className="mb-4 flex flex-wrap gap-2">{recipe.featureTags.map((tag) => <span key={tag} className="rounded-full bg-[#fff2e8] px-3 py-1.5 text-xs font-bold text-[#a74e2b]">{tag}</span>)}{recipe.tags.filter((tag) => tag !== recipe.category && !recipe.featureTags.includes(tag)).map((tag) => <span key={tag} className="rounded-full bg-secondary px-3 py-1.5 text-xs font-bold text-secondary-foreground">{tag}</span>)}</div>
               <h1 className="text-balance text-4xl font-black tracking-[-.055em] sm:text-5xl lg:text-6xl">{recipe.title}</h1>
               <p className="mt-4 max-w-xl text-lg leading-8 text-muted-foreground">{recipe.summary}</p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-bold">
                 <span className="flex items-center gap-2"><Clock3 className="size-5 text-primary" />共 {totalMinutes(recipe)} 分钟</span>
-                <span className="flex items-center gap-2"><Flame className="size-5 text-primary" />难度 {recipe.difficulty} / 5</span>
+                <span className="flex items-center gap-2"><Flame className="size-5 text-primary" /><DifficultyStars difficulty={recipe.difficulty} showLabel /></span>
                 <span className="flex items-center gap-2"><Sparkles className="size-5 text-primary" />{recipe.weeklyLikes?`本周 ${recipe.weeklyLikes} 人点赞`:"本周还没有点赞"}</span>
               </div>
               <div className="mt-7"><RecipeDetailClient recipe={recipe} variant="actions" /></div>
-            </div>
           </div>
+        </div>
         </div>
       </section>
 

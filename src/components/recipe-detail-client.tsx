@@ -18,6 +18,7 @@ import type { Ingredient, Recipe } from "@/lib/recipes";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LikeButton } from "@/components/like-button";
 import { Button } from "@/components/ui/button";
+import { DifficultyStars } from "@/components/difficulty-stars";
 
 const CHECKS_EVENT = "cfm:ingredient-checks";
 
@@ -220,7 +221,7 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground">
           <div className="rounded-2xl bg-[#fff7ed] p-3"><Clock3 className="mx-auto mb-1 size-5 text-primary" /><strong className="block text-sm text-foreground">{recipe.prepMinutes} 分钟</strong>准备</div>
           <div className="rounded-2xl bg-[#edf5e8] p-3"><Flame className="mx-auto mb-1 size-5 text-[#5e8557]" /><strong className="block text-sm text-foreground">{recipe.cookMinutes} 分钟</strong>烹饪</div>
-          <div className="rounded-2xl bg-[#fff5d9] p-3"><Sparkles className="mx-auto mb-1 size-5 text-[#b67d08]" /><strong className="block text-sm text-foreground">难度 {recipe.difficulty}</strong>容易上手</div>
+          <div className="rounded-2xl bg-[#fff5d9] p-3"><Sparkles className="mx-auto mb-1 size-5 text-[#b67d08]" /><DifficultyStars difficulty={recipe.difficulty} className="justify-center" /><span className="mt-1 block">易做程度</span></div>
         </div>
         <Button asChild size="lg" className="mt-5 h-14 w-full rounded-2xl text-base font-black shadow-[0_12px_24px_rgba(240,100,58,.24)]"><Link href={`/cook/${recipe.slug}?servings=${servings}`}><ChefHat className="size-5" />开始做菜<ChevronRight className="size-5" /></Link></Button>
         <a href="#ingredients" className="mt-3 flex h-11 items-center justify-center text-sm font-bold text-muted-foreground transition hover:text-primary">先核对食材</a>
