@@ -11,7 +11,7 @@ const ingredientEmoji: Record<string, string> = { 鸡蛋: "🥚", 番茄: "🍅"
 
 export default async function Home() {
   const counts = await getLikeCountMap();
-  const withLikes = recipes.filter((recipe)=>recipe.editorialStatus==="reviewed").map((recipe) => { const value=counts.get(recipe.slug); return value?{...recipe,likes:value.totalLikes,weeklyLikes:value.weeklyLikes}:recipe; });
+  const withLikes = recipes.map((recipe) => { const value=counts.get(recipe.slug); return value?{...recipe,likes:value.totalLikes,weeklyLikes:value.weeklyLikes}:recipe; });
   const hasLikes = withLikes.some((recipe) => recipe.weeklyLikes > 0);
   const popular = [...withLikes].sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes).slice(0, 8);
   return <>

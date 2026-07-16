@@ -319,7 +319,7 @@ function buildRecipe(spec: Spec): Recipe {
   const editorialStatus: Recipe["editorialStatus"] = REVIEWED_SLUGS.has(spec.slug) ? "reviewed" : "draft";
   const imageVerified = spec.slug === "tomato-scrambled-eggs";
   return {
-    slug:spec.slug,title:spec.title,summary:editorialStatus==="reviewed"?`把${spec.title}的用量、火候和完成状态逐步写清楚，在家也能稳定复现。`:`${spec.title}正在逐项核对用量、火候与步骤，完成编辑复核后开放烹饪模式。`,image:imageVerified?"/images/recipes/tomato-scrambled-eggs.webp":IMAGE_BY_CATEGORY[spec.category],imageVerified,editorialStatus,reviewedAt:editorialStatus==="reviewed"?"2026-07-16":undefined,category:spec.category,tags,aliases:spec.title.includes("番茄")?[spec.title.replaceAll("番茄","西红柿")]:[],
+    slug:spec.slug,title:spec.title,summary:`把${spec.title}的备菜、用量、火候、时间和完成状态逐步写清楚。`,image:imageVerified?"/images/recipes/tomato-scrambled-eggs.webp":IMAGE_BY_CATEGORY[spec.category],imageVerified,editorialStatus,reviewedAt:editorialStatus==="reviewed"?"2026-07-16":undefined,category:spec.category,tags,aliases:spec.title.includes("番茄")?[spec.title.replaceAll("番茄","西红柿")]:[],
     dietType,nutritionRoles,cookingMethod:spec.method,spiceLevel:spec.spice ?? 0,allergens,babyAge:spec.baby?{min:spec.baby[0],max:spec.baby[1],texture:spec.baby[2]}:undefined,
     difficulty:Math.min(5,Math.max(1,Math.ceil((spec.prep+spec.active+spec.wait)/30))) as Recipe["difficulty"],prepMinutes:spec.prep,activeMinutes:spec.active,waitMinutes:spec.wait,cookMinutes:spec.active+spec.wait,servings:spec.servings,
     likes:0,weeklyLikes:0,ingredients,steps:makeSteps(spec,ingredients),tips:[`开始前把${ingredientNames}全部称量并按步骤摆放。`,`完成状态比固定钟表更重要，同时观察颜色、质地和香气。`],failurePoints:[`${mainFailure(spec.method)}；出现异常焦味时立即离火。`],safetyNote:spec.baby?"需由成人全程看护进食；首次引入常见过敏原时一次只尝试一种，并观察 3–5 天。":"生熟分开处理；肉、禽、蛋、鱼贝类必须彻底熟透后食用。",

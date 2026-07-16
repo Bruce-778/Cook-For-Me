@@ -190,7 +190,7 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
   if (variant === "actions") {
     return (
       <div className="flex items-center gap-2">
-        {recipe.editorialStatus==="reviewed"&&<LikeButton slug={recipe.slug} initialCount={recipe.likes} />}
+        <LikeButton slug={recipe.slug} initialCount={recipe.likes} />
         <FavoriteButton slug={recipe.slug} />
         <button type="button" onClick={share} className="grid size-11 place-items-center rounded-full border bg-card text-muted-foreground transition hover:scale-105 hover:text-primary" aria-label="分享菜谱">
           {shared ? <Check className="size-5 text-[#5e8557]" /> : <Share2 className="size-5" />}
@@ -222,7 +222,7 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
           <div className="rounded-2xl bg-[#edf5e8] p-3"><Flame className="mx-auto mb-1 size-5 text-[#5e8557]" /><strong className="block text-sm text-foreground">{recipe.cookMinutes} 分钟</strong>烹饪</div>
           <div className="rounded-2xl bg-[#fff5d9] p-3"><Sparkles className="mx-auto mb-1 size-5 text-[#b67d08]" /><strong className="block text-sm text-foreground">难度 {recipe.difficulty}</strong>容易上手</div>
         </div>
-        {recipe.editorialStatus==="reviewed"?<Button asChild size="lg" className="mt-5 h-14 w-full rounded-2xl text-base font-black shadow-[0_12px_24px_rgba(240,100,58,.24)]"><Link href={`/cook/${recipe.slug}?servings=${servings}`}><ChefHat className="size-5" />开始做菜<ChevronRight className="size-5" /></Link></Button>:<Button disabled size="lg" className="mt-5 h-14 w-full rounded-2xl text-base font-black">完成逐道复核后开放</Button>}
+        <Button asChild size="lg" className="mt-5 h-14 w-full rounded-2xl text-base font-black shadow-[0_12px_24px_rgba(240,100,58,.24)]"><Link href={`/cook/${recipe.slug}?servings=${servings}`}><ChefHat className="size-5" />开始做菜<ChevronRight className="size-5" /></Link></Button>
         <a href="#ingredients" className="mt-3 flex h-11 items-center justify-center text-sm font-bold text-muted-foreground transition hover:text-primary">先核对食材</a>
       </aside>
       </div>
@@ -234,7 +234,7 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
             <span className="w-12 text-center text-sm font-black">{servings}人</span>
             <button type="button" onClick={() => setServings((value) => Math.min(8, value + 1))} disabled={servings === 8} aria-label="增加一人份" className="grid size-9 place-items-center disabled:opacity-30"><Plus className="size-4" /></button>
           </div>
-          {recipe.editorialStatus==="reviewed"?<Button asChild className="h-12 flex-1 rounded-2xl font-black"><Link href={`/cook/${recipe.slug}?servings=${servings}`}><ChefHat />开始做菜</Link></Button>:<Button disabled className="h-12 flex-1 rounded-2xl font-black">内容复核中</Button>}
+          <Button asChild className="h-12 flex-1 rounded-2xl font-black"><Link href={`/cook/${recipe.slug}?servings=${servings}`}><ChefHat />开始做菜</Link></Button>
         </div>
       </div>
     </>

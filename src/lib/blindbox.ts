@@ -34,7 +34,7 @@ function mergeShoppingList(items: Recipe[], servings: number) {
 
 export function generateMenu(input: BlindBoxInput): MenuResult {
   if (!Number.isInteger(input.servings) || input.servings < 1 || input.servings > 8) throw new Error("就餐人数需在 1–8 人之间。");
-  const pool = recipes.filter((recipe) => recipe.editorialStatus === "reviewed" && !excluded(recipe,input.exclusions) && !(input.avoidSlugs ?? []).includes(recipe.slug) && (input.babyAge ? (recipe.babyAge && input.babyAge >= recipe.babyAge.min && input.babyAge <= recipe.babyAge.max) : !recipe.babyAge));
+  const pool = recipes.filter((recipe) => !excluded(recipe,input.exclusions) && !(input.avoidSlugs ?? []).includes(recipe.slug) && (input.babyAge ? (recipe.babyAge && input.babyAge >= recipe.babyAge.min && input.babyAge <= recipe.babyAge.max) : !recipe.babyAge));
   if(input.babyAge){const candidate=seeded(pool.filter(recipe=>!input.maxMinutes||totalRecipeMinutes(recipe)<=input.maxMinutes),Date.now()%997)[0];if(!candidate)throw new Error("当前月龄、时间和过敏条件下没有合适辅食，请放宽时间或减少限制。");return{recipes:[candidate],servings:1,estimatedMinutes:totalRecipeMinutes(candidate),stapleSuggestion:"继续母乳或配方奶；辅食量按宝宝接受程度逐步增加",reason:`适合 ${candidate.babyAge?.min}–${candidate.babyAge?.max} 月龄的单份辅食`,shoppingList:mergeShoppingList([candidate],1)}}
   const count = input.servings <= 2 ? 2 : input.servings <= 4 ? 4 : 5;
   const salt = Date.now()%997;
@@ -51,7 +51,7 @@ export function generateMenu(input: BlindBoxInput): MenuResult {
     const candidates = pool.filter((recipe) => recipe.slug!==old?.slug && recipe.nutritionRoles.some((role) => old?.nutritionRoles.includes(role)) && !current.some((item) => item.slug===recipe.slug));
     if (candidates[0]) { current[input.replaceIndex] = candidates[0]; selected = current; }
   }
-  if (selected.length < count) throw new Error("当前已完成逐道复核的菜谱还不足以组成安全、均衡的整桌菜单。我们不会用待复核内容凑数，请稍后再试或先从已复核菜谱中选择。");
+  if (selected.length < count) throw new Error("当前条件下没有足够菜谱组成安全、均衡的整桌菜单，请减少忌口条件或放宽用餐时间。");
   let estimatedMinutes = menuMinutes(selected);
   if (input.maxMinutes && estimatedMinutes > input.maxMinutes) {
     const quickPool = pool.filter((r) => r.prepMinutes+r.activeMinutes+r.waitMinutes<=input.maxMinutes).sort((a,b) => (a.prepMinutes+a.activeMinutes+a.waitMinutes)-(b.prepMinutes+b.activeMinutes+b.waitMinutes));

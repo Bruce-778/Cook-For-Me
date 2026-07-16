@@ -4,10 +4,10 @@ import { recipes } from "../src/lib/recipes";
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const secret=process.env.SUPABASE_SECRET_KEY;
 if(!url||!secret)throw new Error("请先设置 NEXT_PUBLIC_SUPABASE_URL 和 SUPABASE_SECRET_KEY");
 const supabase=createClient(url,secret,{auth:{persistSession:false,autoRefreshToken:false}});
-const publishReviewedRecipes=process.env.PUBLISH_REVIEWED_RECIPES==="true";
+const keepDraftsPrivate=process.env.KEEP_DRAFT_RECIPES_PRIVATE==="true";
 
 for(const recipe of recipes){
- const canPublish=publishReviewedRecipes&&recipe.editorialStatus==="reviewed";
+ const canPublish=!keepDraftsPrivate||recipe.editorialStatus==="reviewed";
  const {data:row,error}=await supabase.from("recipes").upsert({slug:recipe.slug,title:recipe.title,summary:recipe.summary,image_path:recipe.image,category:recipe.category,tags:recipe.tags,aliases:recipe.aliases,diet_type:recipe.dietType,nutrition_roles:recipe.nutritionRoles,cooking_method:recipe.cookingMethod,spice_level:recipe.spiceLevel,allergens:recipe.allergens,baby_age_min:recipe.babyAge?.min??null,baby_age_max:recipe.babyAge?.max??null,difficulty:recipe.difficulty,prep_minutes:recipe.prepMinutes,active_minutes:recipe.activeMinutes,wait_minutes:recipe.waitMinutes,servings:recipe.servings,bilibili_video_url:recipe.bilibiliVideoUrl??null,bilibili_search_url:recipe.bilibiliSearchUrl,video_title:recipe.videoTitle??null,video_creator:recipe.videoCreator??null,video_verified_at:recipe.videoVerifiedAt??null,status:canPublish?"published":"review",reviewed_at:canPublish?recipe.reviewedAt??new Date().toISOString():null},{onConflict:"slug"}).select("id").single();
  if(error||!row)throw new Error(`${recipe.title} 主表写入失败：${error?.message}`);const recipeId=row.id as string;
  await Promise.all([supabase.from("recipe_ingredients").delete().eq("recipe_id",recipeId),supabase.from("recipe_steps").delete().eq("recipe_id",recipeId),supabase.from("recipe_tips").delete().eq("recipe_id",recipeId),supabase.from("recipe_sources").delete().eq("recipe_id",recipeId)]);
@@ -18,5 +18,5 @@ for(const recipe of recipes){
  const {error:sourceError}=await supabase.from("recipe_sources").insert(recipe.sources.map(source=>({recipe_id:recipeId,name:source.name,url:source.url,source_type:source.type,verified_at:source.verifiedAt})));if(sourceError)throw sourceError;
  console.log(`✓ ${recipe.title}`);
 }
-const publishedCount=recipes.filter(recipe=>publishReviewedRecipes&&recipe.editorialStatus==="reviewed").length;
-console.log(`完成：${recipes.length} 道菜已同步；${publishedCount} 道已发布，${recipes.length-publishedCount} 道保留为待复核；未写入任何点赞记录。`);
+const publishedCount=recipes.filter(recipe=>!keepDraftsPrivate||recipe.editorialStatus==="reviewed").length;
+console.log(`完成：${recipes.length} 道菜已同步；${publishedCount} 道可公开点赞，${recipes.length-publishedCount} 道保留为内部待复核；未写入任何点赞记录。`);

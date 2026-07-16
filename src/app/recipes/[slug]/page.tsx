@@ -58,19 +58,18 @@ export default async function RecipePage({ params }: PageProps) {
 
   return (
     <div className="pb-32 md:pb-20">
-      {recipe.editorialStatus==="reviewed"&&<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <section className="overflow-hidden border-b bg-[radial-gradient(circle_at_85%_12%,#ffe1c9_0,transparent_30%),linear-gradient(180deg,#fff8ed_0%,#fffdf8_100%)]">
         <div className="page-shell py-5 md:py-10">
           <Link href="/discover" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4" />返回发现菜谱</Link>
-          <div className={`grid items-center gap-7 ${recipe.imageVerified?"lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)]":"lg:grid-cols-1"} lg:gap-12`}>
-            {recipe.imageVerified&&<div className="relative aspect-[4/3] overflow-hidden rounded-[28px] border bg-muted soft-shadow lg:aspect-[16/10]">
+          <div className="grid items-center gap-7 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)] lg:gap-12">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] border bg-muted soft-shadow lg:aspect-[16/10]">
               <Image src={recipe.image} alt={`${recipe.title}成品`} fill priority loading="eager" sizes="(max-width: 1024px) 100vw, 720px" className="object-cover" />
               <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#3a251e]/45 to-transparent" />
               <span className="absolute bottom-4 left-4 rounded-full bg-card/92 px-4 py-2 text-sm font-black text-primary backdrop-blur">{recipe.category}</span>
-            </div>}
-            <div className={recipe.imageVerified?"":"max-w-3xl"}>
+            </div>
+            <div>
               <div className="mb-4 flex flex-wrap gap-2">{recipe.tags.map((tag) => <span key={tag} className="rounded-full bg-secondary px-3 py-1.5 text-xs font-bold text-secondary-foreground">{tag}</span>)}</div>
-              {recipe.editorialStatus==="draft"&&<div className="mb-5 rounded-2xl border border-[#dc9f4c]/35 bg-[#fff5df] p-4 text-sm leading-6 text-[#75501f]"><strong className="block text-base">这道菜正在逐项复核</strong>当前内容只作为编辑预览，尚未完成来源、分步用量和成品图核验，因此暂不开放烹饪模式，也不会被搜索引擎收录。</div>}
               <h1 className="text-balance text-4xl font-black tracking-[-.055em] sm:text-5xl lg:text-6xl">{recipe.title}</h1>
               <p className="mt-4 max-w-xl text-lg leading-8 text-muted-foreground">{recipe.summary}</p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-bold">
@@ -141,7 +140,7 @@ export default async function RecipePage({ params }: PageProps) {
               <div className="flex items-start gap-3">
                 <ShieldCheck className={`mt-0.5 size-6 shrink-0 ${recipe.editorialStatus==="reviewed"?"text-[#4f7b48]":"text-[#b67d08]"}`} />
                 <div>
-                  <h3 className="font-black">{recipe.editorialStatus==="reviewed"?`已于 ${recipe.reviewedAt} 完成逐项复核`:"编辑参考资料，尚未通过发布复核"}</h3>
+                  <h3 className="font-black">{recipe.editorialStatus==="reviewed"?`已于 ${recipe.reviewedAt} 完成逐项复核`:"已建立备菜与步骤，正在持续校对细节"}</h3>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">核验范围包括食材总量、分步取用、火候、水温、油温、计时、完成状态、食品安全与成品图。不同灶具和锅具升温速度不同，页面同时提供可观察状态，不能只按分钟机械操作。</p>
                 </div>
               </div>
