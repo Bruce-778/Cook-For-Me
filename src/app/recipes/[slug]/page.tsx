@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, ChefHat, CircleAlert, Clock3, Flame, Lightbulb, PlayCircle, ShieldCheck, Sparkles, ThermometerSun, Utensils } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChefHat, CircleAlert, Clock3, Droplets, Flame, Lightbulb, PlayCircle, ShieldCheck, Sparkles, ThermometerSun, Utensils } from "lucide-react";
 import { RecipeDetailClient } from "@/components/recipe-detail-client";
 import { RecipeCard } from "@/components/recipe-card";
 import { getRecipe, recipes, totalMinutes } from "@/lib/recipes";
+import { getLikeCountMap } from "@/lib/likes";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -21,14 +22,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${recipe.title}做法`,
     description: `${recipe.summary} ${recipe.servings}人份，准备${recipe.prepMinutes}分钟，烹饪${recipe.cookMinutes}分钟。`,
     alternates: { canonical: `/recipes/${recipe.slug}` },
-    openGraph: { title: `${recipe.title}做法｜Cook for Me`, description: recipe.summary, type: "article", images: [{ url: recipe.image, alt: recipe.title }] },
+    openGraph: { title: `${recipe.title}做法｜Cook for Me`, description: recipe.summary, type: "article", ...(recipe.imageVerified?{images: [{ url: recipe.image, alt: recipe.title }]}:{}) },
+    robots: recipe.editorialStatus==="reviewed"?undefined:{index:false,follow:true},
   };
 }
 
 export default async function RecipePage({ params }: PageProps) {
   const { slug } = await params;
-  const recipe = getRecipe(slug);
-  if (!recipe) notFound();
+  const baseRecipe = getRecipe(slug);
+  if (!baseRecipe) notFound();
+  const counts=await getLikeCountMap();const count=counts.get(slug);const recipe=count?{...baseRecipe,likes:count.totalLikes,weeklyLikes:count.weeklyLikes}:baseRecipe;
 
   const similar = recipes
     .filter((item) => item.slug !== recipe.slug)
@@ -55,24 +58,25 @@ export default async function RecipePage({ params }: PageProps) {
 
   return (
     <div className="pb-32 md:pb-20">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      {recipe.editorialStatus==="reviewed"&&<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
       <section className="overflow-hidden border-b bg-[radial-gradient(circle_at_85%_12%,#ffe1c9_0,transparent_30%),linear-gradient(180deg,#fff8ed_0%,#fffdf8_100%)]">
         <div className="page-shell py-5 md:py-10">
           <Link href="/discover" className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4" />返回发现菜谱</Link>
-          <div className="grid items-center gap-7 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)] lg:gap-12">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] border bg-muted soft-shadow lg:aspect-[16/10]">
+          <div className={`grid items-center gap-7 ${recipe.imageVerified?"lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)]":"lg:grid-cols-1"} lg:gap-12`}>
+            {recipe.imageVerified&&<div className="relative aspect-[4/3] overflow-hidden rounded-[28px] border bg-muted soft-shadow lg:aspect-[16/10]">
               <Image src={recipe.image} alt={`${recipe.title}成品`} fill priority loading="eager" sizes="(max-width: 1024px) 100vw, 720px" className="object-cover" />
               <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#3a251e]/45 to-transparent" />
               <span className="absolute bottom-4 left-4 rounded-full bg-card/92 px-4 py-2 text-sm font-black text-primary backdrop-blur">{recipe.category}</span>
-            </div>
-            <div>
+            </div>}
+            <div className={recipe.imageVerified?"":"max-w-3xl"}>
               <div className="mb-4 flex flex-wrap gap-2">{recipe.tags.map((tag) => <span key={tag} className="rounded-full bg-secondary px-3 py-1.5 text-xs font-bold text-secondary-foreground">{tag}</span>)}</div>
+              {recipe.editorialStatus==="draft"&&<div className="mb-5 rounded-2xl border border-[#dc9f4c]/35 bg-[#fff5df] p-4 text-sm leading-6 text-[#75501f]"><strong className="block text-base">这道菜正在逐项复核</strong>当前内容只作为编辑预览，尚未完成来源、分步用量和成品图核验，因此暂不开放烹饪模式，也不会被搜索引擎收录。</div>}
               <h1 className="text-balance text-4xl font-black tracking-[-.055em] sm:text-5xl lg:text-6xl">{recipe.title}</h1>
               <p className="mt-4 max-w-xl text-lg leading-8 text-muted-foreground">{recipe.summary}</p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-bold">
                 <span className="flex items-center gap-2"><Clock3 className="size-5 text-primary" />共 {totalMinutes(recipe)} 分钟</span>
                 <span className="flex items-center gap-2"><Flame className="size-5 text-primary" />难度 {recipe.difficulty} / 5</span>
-                <span className="flex items-center gap-2"><Sparkles className="size-5 text-primary" />本周 {recipe.weeklyLikes} 人喜欢</span>
+                <span className="flex items-center gap-2"><Sparkles className="size-5 text-primary" />{recipe.weeklyLikes?`本周 ${recipe.weeklyLikes} 人点赞`:"本周还没有点赞"}</span>
               </div>
               <div className="mt-7"><RecipeDetailClient recipe={recipe} variant="actions" /></div>
             </div>
@@ -104,13 +108,15 @@ export default async function RecipePage({ params }: PageProps) {
                   <span className="absolute left-4 top-5 z-10 grid size-11 place-items-center rounded-2xl bg-primary text-lg font-black text-white shadow-[0_8px_20px_rgba(240,100,58,.22)] sm:left-5 sm:top-7 sm:size-12">{index + 1}</span>
                   <h3 className="text-xl font-black sm:text-2xl">{step.title}</h3>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {step.heat && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffe2d1] px-3 py-1.5 text-xs font-black text-[#9d3b20]"><Flame className="size-3.5" />{step.heat}</span>}
+                    {step.heat !== "不适用" && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffe2d1] px-3 py-1.5 text-xs font-black text-[#9d3b20]"><Flame className="size-3.5" />{step.heat}</span>}
+                    {step.waterTemperature !== "不适用" && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#dff2f8] px-3 py-1.5 text-xs font-black text-[#356777]"><Droplets className="size-3.5" />{step.waterTemperature}</span>}
                     {step.time && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff1c7] px-3 py-1.5 text-xs font-black text-[#845e0b]"><Clock3 className="size-3.5" />{step.time}</span>}
-                    {index === 1 && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e9f3e4] px-3 py-1.5 text-xs font-black text-[#456341]"><ThermometerSun className="size-3.5" />油面轻微波纹</span>}
+                    {step.oilTemperature !== "不适用" && <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e9f3e4] px-3 py-1.5 text-xs font-black text-[#456341]"><ThermometerSun className="size-3.5" />{step.oilAmountMl?`${step.oilAmountMl}ml · `:""}{step.oilTemperature}</span>}
                   </div>
                   <p className="mt-4 text-[17px] leading-8 text-[#4d3931]">{step.text}</p>
-                  {step.ingredients && <p className="mt-3 text-sm text-muted-foreground"><strong className="text-foreground">本步用到：</strong>{step.ingredients.join("、")}</p>}
+                  {step.ingredients && <p className="mt-3 text-sm text-muted-foreground"><strong className="text-foreground">本步用到：</strong>{step.ingredients.map(name=>{const ingredient=recipe.ingredients.find(item=>item.name===name);const amount=step.ingredientAmounts?.[name];return amount!==undefined&&ingredient?`${name} ${amount}${ingredient.unit}`:name}).join("、")}</p>}
                   <div className="mt-5 flex gap-3 rounded-2xl bg-[#edf5e8] p-4 text-sm leading-6 text-[#456341]"><CheckCircle2 className="mt-0.5 size-5 shrink-0" /><p><strong>看到这样就对了：</strong>{step.cue}</p></div>
+                  {step.safety&&<div className="mt-3 flex gap-3 rounded-2xl bg-[#fff2ee] p-4 text-sm leading-6 text-[#8b3d32]"><ShieldCheck className="mt-0.5 size-5 shrink-0"/><p><strong>安全提醒：</strong>{step.safety}</p></div>}
                 </article>
               ))}
             </div>
@@ -121,9 +127,28 @@ export default async function RecipePage({ params }: PageProps) {
             <h2 className="text-2xl font-black tracking-tight sm:text-3xl">让这道菜更好吃</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {recipe.tips.map((tip, index) => <div key={tip} className="flex gap-4 rounded-[22px] border bg-[#fff9e8] p-5"><span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#f3c75b]/25 text-[#9b6b00]"><Lightbulb className="size-5" /></span><div><h3 className="font-black">小贴士 {index + 1}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{tip}</p></div></div>)}
-              <div className="flex gap-4 rounded-[22px] border border-[#b83e32]/20 bg-[#fff2ee] p-5"><span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#b83e32]/10 text-destructive"><CircleAlert className="size-5" /></span><div><h3 className="font-black">常见翻车点</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">不要让锅里的油冒烟；食材下锅后按步骤观察状态，完成后及时离火，避免余温继续加热。</p></div></div>
+              {recipe.failurePoints.map(point=><div key={point} className="flex gap-4 rounded-[22px] border border-[#b83e32]/20 bg-[#fff2ee] p-5"><span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#b83e32]/10 text-destructive"><CircleAlert className="size-5" /></span><div><h3 className="font-black">常见翻车点</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{point}</p></div></div>)}
+              <div className="flex gap-4 rounded-[22px] border bg-[#edf5e8] p-5 sm:col-span-2"><ShieldCheck className="size-6 shrink-0 text-[#456341]"/><div><h3 className="font-black">食品安全</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{recipe.safetyNote}</p></div></div>
             </div>
-            <a href={`https://search.bilibili.com/all?keyword=${encodeURIComponent(`${recipe.title} 做法`)}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />在 B 站搜索视频做法</a>
+            <div className="mt-5 flex flex-wrap gap-3">{recipe.bilibiliVideoUrl&&<a href={recipe.bilibiliVideoUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />观看已核验 B 站视频</a>}<a href={recipe.bilibiliSearchUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />{recipe.bilibiliVideoUrl?"搜索同名做法":"去 B 站搜索同名做法"}</a></div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">{recipe.bilibiliVideoUrl?`已核验：${recipe.videoTitle} · ${recipe.videoCreator} · ${recipe.videoVerifiedAt}`:"暂未收录已核验的具体视频直链，当前提供同名搜索入口。"} 视频只用于辅助观察，精确用量与步骤以本站当前菜谱为准。</p>
+          </section>
+
+          <section>
+            <p className="mb-1 text-sm font-bold text-primary">EDITORIAL REVIEW</p>
+            <h2 className="text-2xl font-black tracking-tight sm:text-3xl">内容核验记录</h2>
+            <div className="mt-5 rounded-[22px] border bg-card p-5 sm:p-6">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className={`mt-0.5 size-6 shrink-0 ${recipe.editorialStatus==="reviewed"?"text-[#4f7b48]":"text-[#b67d08]"}`} />
+                <div>
+                  <h3 className="font-black">{recipe.editorialStatus==="reviewed"?`已于 ${recipe.reviewedAt} 完成逐项复核`:"编辑参考资料，尚未通过发布复核"}</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">核验范围包括食材总量、分步取用、火候、水温、油温、计时、完成状态、食品安全与成品图。不同灶具和锅具升温速度不同，页面同时提供可观察状态，不能只按分钟机械操作。</p>
+                </div>
+              </div>
+              <ul className="mt-5 space-y-2 border-t pt-4 text-sm leading-6">
+                {recipe.sources.map((source)=><li key={`${source.name}-${source.url}`} className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"><a href={source.url} target="_blank" rel="noreferrer" className="font-bold text-primary underline-offset-4 hover:underline">{source.name}</a><span className="text-xs text-muted-foreground">{source.type} · 核验日期 {source.verifiedAt}</span></li>)}
+              </ul>
+            </div>
           </section>
         </div>
 

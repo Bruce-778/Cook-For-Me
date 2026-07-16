@@ -7,6 +7,7 @@ import "./globals.css";
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001"),
   title: { default: "Cook for Me｜把每一道家常菜做明白", template: "%s｜Cook for Me" },
   description: "温暖、准确、适合新手的中文家常菜谱网站。精确用量、清楚火候，一步一步陪你做好饭。",
   manifest: "/manifest.webmanifest",

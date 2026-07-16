@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { Flame, TrendingUp } from "lucide-react";
 import { RankingList } from "@/components/ranking-list";
 import { recipes } from "@/lib/recipes";
+import { getLikeCountMap } from "@/lib/likes";
 
 export const metadata: Metadata = {
   title: "本周热门排行",
   description: "查看 Cook for Me 最近 7 天最受欢迎的家常菜谱。",
 };
 
-export default function RankingPage() {
-  const rankedRecipes = [...recipes].sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes || a.title.localeCompare(b.title, "zh-CN"));
+export default async function RankingPage() {
+  const counts=await getLikeCountMap();
+  const rankedRecipes=recipes.filter(recipe=>recipe.editorialStatus==="reviewed").map(recipe=>{const value=counts.get(recipe.slug);return value?{...recipe,likes:value.totalLikes,weeklyLikes:value.weeklyLikes}:recipe}).filter(recipe=>recipe.weeklyLikes>0).sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes || a.title.localeCompare(b.title, "zh-CN"));
 
   return (
     <div className="page-shell py-8 md:py-12 lg:py-16">

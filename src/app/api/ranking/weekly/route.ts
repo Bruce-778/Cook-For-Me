@@ -1,0 +1,4 @@
+import { NextRequest, NextResponse } from "next/server";
+import { recipes } from "@/lib/recipes";
+import { getLikeCountMap } from "@/lib/likes";
+export async function GET(request:NextRequest){const rawLimit=Number(request.nextUrl.searchParams.get("limit")??10);if(!Number.isInteger(rawLimit)||rawLimit<1)return NextResponse.json({code:"INVALID_LIMIT",message:"排行数量必须是正整数。"},{status:400});const limit=Math.min(50,rawLimit);const counts=await getLikeCountMap();const items=recipes.filter(recipe=>recipe.editorialStatus==="reviewed").map(recipe=>{const v=counts.get(recipe.slug);return v?{...recipe,likes:v.totalLikes,weeklyLikes:v.weeklyLikes}:recipe}).filter(r=>r.weeklyLikes>0).sort((a,b)=>b.weeklyLikes-a.weeklyLikes||b.likes-a.likes||a.title.localeCompare(b.title,"zh-CN")).slice(0,limit);return NextResponse.json({items,window:"7d",generatedAt:new Date().toISOString()});}

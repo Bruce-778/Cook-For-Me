@@ -6,6 +6,7 @@ import { useMemo, useSyncExternalStore } from "react";
 import { RecipeCard } from "@/components/recipe-card";
 import { FAVORITES_KEY, readStringList, writeStringList } from "@/lib/local-store";
 import { Recipe, totalMinutes } from "@/lib/recipes";
+import { DietSettings } from "@/components/diet-settings";
 
 type SortOption = "saved" | "time" | "difficulty";
 
@@ -153,5 +154,5 @@ function useFavoritesSort() {
 }
 
 export function FavoritesClient({ recipes }: { recipes: Recipe[] }) {
-  return <FavoritesContent recipes={recipes} />;
+  return <><DietSettings/><FavoritesContent recipes={recipes} /></>;
 }

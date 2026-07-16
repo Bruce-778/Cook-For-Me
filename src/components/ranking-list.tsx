@@ -107,6 +107,7 @@ function PodiumCard({ recipe, rank }: { recipe: Recipe; rank: number }) {
 }
 
 export function RankingList({ recipes }: { recipes: Recipe[] }) {
+  if (recipes.length === 0) return <section className="mt-8 rounded-[28px] border border-dashed bg-card px-6 py-16 text-center"><div className="text-5xl">🥢</div><h2 className="mt-4 text-2xl font-black">本周还没有真实点赞</h2><p className="mt-2 text-muted-foreground">所有菜从 0 开始。去菜谱详情点下第一颗真心吧。</p><Link href="/discover" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-bold text-white">发现菜谱</Link></section>;
   const topThree = recipes.slice(0, 3);
   const rest = recipes.slice(3, 10);
 

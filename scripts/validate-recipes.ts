@@ -1,0 +1,28 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { recipes } from "../src/lib/recipes";
+
+const errors: string[]=[];const forbidden=["适量","少许","酌情","若干"];
+const assert=(condition:unknown,message:string)=>{if(!condition)errors.push(message)};
+assert(recipes.length===80,`应有 80 道菜，实际 ${recipes.length}`);
+assert(new Set(recipes.map(r=>r.slug)).size===recipes.length,"slug 必须唯一");
+for(const recipe of recipes){
+ const text=JSON.stringify(recipe);assert(recipe.steps.length>=5&&recipe.steps.length<=10,`${recipe.title}: 步骤数不是 5–10`);assert(recipe.sources.length>=2,`${recipe.title}: 来源少于 2`);assert(recipe.tips.length>=2,`${recipe.title}: 小贴士少于 2`);assert(recipe.failurePoints.length>=1,`${recipe.title}: 缺少翻车点`);assert(Boolean(recipe.safetyNote),`${recipe.title}: 缺少安全提醒`);assert(recipe.ingredients.every(i=>i.amount>0),`${recipe.title}: 食材数量无效`);assert(!forbidden.some(word=>text.includes(word)),`${recipe.title}: 包含模糊词`);assert(recipe.steps.every(step=>step.timerSeconds>0&&step.heat&&step.waterTemperature&&step.oilTemperature&&step.cue),`${recipe.title}: 步骤结构字段不完整`);assert(recipe.steps.every(step=>step.ingredients.every(name=>recipe.ingredients.some(i=>i.name===name))),`${recipe.title}: 步骤引用了清单外食材`);assert(recipe.bilibiliSearchUrl.startsWith("https://search.bilibili.com/"),`${recipe.title}: B站搜索链接无效`);
+ if(recipe.babyAge){assert(recipe.tags.includes("宝宝辅食"),`${recipe.title}: 宝宝标签缺失`);assert(recipe.babyAge.min>=6&&recipe.babyAge.max<=24,`${recipe.title}: 月龄无效`);if(recipe.babyAge.max<12)assert(!/食盐|白糖|蜂蜜/.test(recipe.ingredients.map(i=>i.name).join("")),`${recipe.title}: 12月龄以下含盐糖蜂蜜`);}
+ if(recipe.cookingMethod==="水煮"){assert(recipe.steps.some(step=>step.waterTemperature==="沸水"),`${recipe.title}: 水煮菜缺少沸水步骤`);assert(!recipe.steps.some(step=>step.text.includes("倒入食用油")),`${recipe.title}: 水煮菜错误使用炒油流程`);}
+ if(recipe.cookingMethod==="炖汤"&&recipe.waitMinutes===0)assert(!recipe.steps.some(step=>step.timerSeconds>=1200),`${recipe.title}: 快手汤错误使用长炖流程`);
+ if(recipe.editorialStatus==="reviewed"){
+  assert(Boolean(recipe.reviewedAt),`${recipe.title}: 已复核但缺少复核日期`);
+  assert(recipe.sources.length>=2&&recipe.sources.every(source=>!source.url.startsWith("https://search.bilibili.com/")),`${recipe.title}: 已复核内容仍使用搜索页充当来源`);
+  assert(recipe.steps.every(step=>step.ingredients.every(name=>step.ingredientAmounts?.[name]!==undefined)),`${recipe.title}: 已复核步骤仍有未量化的本步用料`);
+  for(const ingredient of recipe.ingredients){
+   const allocated=recipe.steps.reduce((sum,step)=>sum+(step.ingredientAmounts?.[ingredient.name]??0),0);
+   assert(Math.abs(allocated-ingredient.amount)<0.001,`${recipe.title}: ${ingredient.name} 分步合计 ${allocated}${ingredient.unit}，与总量 ${ingredient.amount}${ingredient.unit} 不一致`);
+  }
+ }
+ if(recipe.imageVerified){assert(recipe.image.startsWith("/images/recipes/"),`${recipe.title}: 已核验图片必须使用本地稳定路径`);assert(existsSync(resolve("public",recipe.image.replace(/^\//,""))),`${recipe.title}: 已核验图片文件缺失`);}
+ if(process.env.CHECK_RECIPE_IMAGES==="1"&&recipe.image.startsWith("/"))assert(existsSync(resolve("public",recipe.image.replace(/^\//,""))),`${recipe.title}: 图片缺失 ${recipe.image}`);
+}
+for(const [tag,min] of [["宝宝辅食",8],["老人友好",12],["清淡恢复",12],["减脂餐",15],["新手推荐",20]] as const)assert(recipes.filter(r=>r.tags.includes(tag)).length>=min,`${tag} 少于 ${min} 道`);
+if(errors.length){console.error(errors.join("\n"));process.exit(1)}
+console.log(`✓ ${recipes.length} 道菜通过结构校验；正式复核 ${recipes.filter(r=>r.editorialStatus==="reviewed").length}，待复核 ${recipes.filter(r=>r.editorialStatus==="draft").length}；宝宝 ${recipes.filter(r=>r.tags.includes("宝宝辅食")).length}，老人 ${recipes.filter(r=>r.tags.includes("老人友好")).length}，清淡恢复 ${recipes.filter(r=>r.tags.includes("清淡恢复")).length}，减脂 ${recipes.filter(r=>r.tags.includes("减脂餐")).length}，新手 ${recipes.filter(r=>r.tags.includes("新手推荐")).length}`);

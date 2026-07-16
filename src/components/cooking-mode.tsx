@@ -9,11 +9,13 @@ import {
   ChevronRight,
   CircleAlert,
   Clock3,
+  Droplets,
   Flame,
   ListChecks,
   Pause,
   Play,
   RotateCcw,
+  ThermometerSun,
   TimerReset,
   Utensils,
 } from "lucide-react";
@@ -112,9 +114,10 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
   const [wakeLockUnavailable, setWakeLockUnavailable] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const notifiedTimerRef = useRef("");
 
   const step = recipe.steps[currentStep];
-  const baseTimerSeconds = secondsFromLabel(step.time);
+  const baseTimerSeconds = step.timerSeconds || secondsFromLabel(step.time);
   const storedTimer = timers[currentStep];
   const timer = storedTimer ? normalizeTimer(storedTimer, now) : {
     initialSeconds: baseTimerSeconds,
@@ -130,11 +133,11 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
     return step.ingredients.map((name) => {
       const ingredient = recipe.ingredients.find((item) => item.name === name);
       if (!ingredient) return { name, amount: null };
-      const amount = ingredient.amount * ratio;
+      const amount = (step.ingredientAmounts?.[name] ?? ingredient.amount) * ratio;
       const formatted = Number.isInteger(amount) ? String(amount) : amount.toFixed(1).replace(/\.0$/, "");
       return { name, amount: `${formatted}${ingredient.unit}` };
     });
-  }, [recipe.ingredients, recipe.servings, servings, step.ingredients]);
+  }, [recipe.ingredients, recipe.servings, servings, step.ingredientAmounts, step.ingredients]);
 
   useEffect(() => {
     document.body.classList.add("cooking-mode-active");
@@ -180,6 +183,22 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
     return () => window.clearInterval(interval);
   }, [timers]);
 
+  useEffect(() => {
+    const key = `${currentStep}:${timer.initialSeconds}`;
+    if (timer.initialSeconds <= 0 || timer.remainingSeconds !== 0 || notifiedTimerRef.current === key) return;
+    notifiedTimerRef.current = key;
+    navigator.vibrate?.([180, 100, 180]);
+    try {
+      const AudioContextClass = window.AudioContext;
+      const audio = new AudioContextClass();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.frequency.value = 880; gain.gain.value = 0.08;
+      oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(); oscillator.stop(audio.currentTime + 0.35);
+      oscillator.addEventListener("ended", () => void audio.close(), { once: true });
+    } catch { /* Visual completion state remains available. */ }
+  }, [currentStep, timer.initialSeconds, timer.remainingSeconds]);
+
   const requestWakeLock = useCallback(async () => {
     if (!("wakeLock" in navigator)) {
       setWakeLockUnavailable(true);
@@ -214,7 +233,6 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
   function toggleTimer() {
     if (!baseTimerSeconds) return;
     // Event handlers intentionally read wall-clock time so background tabs do not cause timer drift.
-    // eslint-disable-next-line react-hooks/purity
     const timestamp = Date.now();
     if (timer.running) {
       updateTimer({ ...timer, remainingSeconds: Math.max(0, Math.ceil(((timer.targetEndAt ?? timestamp) - timestamp) / 1000)), targetEndAt: null, running: false });
@@ -230,7 +248,6 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
 
   function addThirtySeconds() {
     const remainingSeconds = timer.remainingSeconds + 30;
-    // eslint-disable-next-line react-hooks/purity
     const timestamp = Date.now();
     updateTimer({ ...timer, remainingSeconds, targetEndAt: timer.running ? timestamp + remainingSeconds * 1000 : null });
   }
@@ -324,9 +341,13 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
               <p className="text-[20px] font-medium leading-[1.75] tracking-[-0.015em] md:text-[24px]">{step.text}</p>
 
               <div className="flex flex-wrap gap-2.5">
-                {step.heat && <span className="flex items-center gap-2 rounded-2xl bg-[#ffe4d6] px-4 py-3 font-black text-[#a43e22]"><Flame className="size-5" />{step.heat}</span>}
+                {step.heat !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#ffe4d6] px-4 py-3 font-black text-[#a43e22]"><Flame className="size-5" />{step.heat}</span>}
+                {step.waterTemperature !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#dff2f8] px-4 py-3 font-black text-[#356777]"><Droplets className="size-5" />{step.waterTemperature}</span>}
+                {step.oilTemperature !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#e9f3e4] px-4 py-3 font-black text-[#456341]"><ThermometerSun className="size-5" />{step.oilAmountMl ? `${step.oilAmountMl}ml · ` : ""}{step.oilTemperature}</span>}
                 {step.time && <span className="flex items-center gap-2 rounded-2xl bg-[#fff2c7] px-4 py-3 font-black text-[#82600f]"><Clock3 className="size-5" />{step.time}</span>}
               </div>
+
+              {step.safety && <div className="rounded-[22px] border border-[#efc8bd] bg-[#fff2ee] p-4 text-sm font-semibold leading-6 text-[#8b3d32]">安全提醒：{step.safety}</div>}
 
               <div className="rounded-[22px] border border-[#bfd7ba] bg-[#eef7ea] p-4 md:p-5">
                 <p className="mb-2 flex items-center gap-2 text-sm font-black text-[#52764d]"><Check className="size-5" />做到什么程度算完成？</p>
