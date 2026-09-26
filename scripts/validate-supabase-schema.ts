@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const migration=readFileSync(resolve("supabase/migrations/20260715082834_cook_for_me_schema.sql"),"utf8");
+const migrationDir=resolve("supabase/migrations");
+const migration=readdirSync(migrationDir).filter(file=>file.endsWith(".sql")).sort().map(file=>readFileSync(resolve(migrationDir,file),"utf8")).join("\n");
 const seed=readFileSync(resolve("supabase/seed.sql"),"utf8");
 const config=readFileSync(resolve("supabase/config.toml"),"utf8");
 const errors:string[]=[];
@@ -20,6 +21,7 @@ assert(/security invoker/i.test(migration),"点赞聚合函数必须使用 secur
 assert(/revoke all on function public\.recipe_like_counts\(\) from public/i.test(migration),"点赞聚合函数未撤销 PUBLIC 执行权限");
 assert(/grant execute on function public\.recipe_like_counts\(\) to service_role/i.test(migration),"点赞聚合函数未限定 service_role");
 assert(!/insert\s+into\s+public\.recipe_likes/i.test(`${migration}\n${seed}`),"迁移或种子禁止写入伪点赞");
+assert(/alter table public\.recipe_sources[\s\S]*alter column verified_at drop not null/i.test(migration),"草稿参考资料日期应允许为空，不能伪造核验日期");
 assert(/enable_anonymous_sign_ins\s*=\s*true/.test(config),"本地匿名登录未启用");
 assert(/anonymous_users\s*=\s*\d+/.test(config),"匿名注册缺少限流配置");
 assert(/http:\/\/localhost:3001/.test(config),"Auth 回调地址缺少 localhost:3001");

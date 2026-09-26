@@ -140,7 +140,7 @@ export default async function RecipePage({ params }: PageProps) {
                 </div>
               </div>
               <ul className="mt-5 space-y-2 border-t pt-4 text-sm leading-6">
-                {recipe.sources.map((source)=><li key={`${source.name}-${source.url}`} className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"><a href={source.url} target="_blank" rel="noreferrer" className="font-bold text-primary underline-offset-4 hover:underline">{source.name}</a><span className="text-xs text-muted-foreground">{source.type} · {recipe.editorialStatus==="reviewed"?"核验":"资料记录"}日期 {source.verifiedAt}</span></li>)}
+                {recipe.sources.map((source)=><li key={`${source.name}-${source.url}`} className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"><a href={source.url} target="_blank" rel="noreferrer" className="font-bold text-primary underline-offset-4 hover:underline">{source.name}</a><span className="text-xs text-muted-foreground">{source.type} · {source.verifiedAt ? `${recipe.editorialStatus==="reviewed"?"核验":"资料记录"}日期 ${source.verifiedAt}` : "日期待资料核验"}</span></li>)}
               </ul>
             </div>
           </section>

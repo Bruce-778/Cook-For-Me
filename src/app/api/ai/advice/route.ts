@@ -12,6 +12,17 @@ const globalForAi = globalThis as typeof globalThis & { cookAiRateLimits?: Map<s
 const rateLimits = globalForAi.cookAiRateLimits ?? new Map<string, RateEntry>();
 globalForAi.cookAiRateLimits = rateLimits;
 
+const MAX_RATE_ENTRIES = 10_000;
+const RATE_WINDOW_MS = 60_000;
+
+function jsonResponse(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init);
+  // Dietary questions may contain health information. Never let an intermediary
+  // cache either the request result or a rate-limit/error response.
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 function requestIdentity(request: NextRequest) {
   const raw = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
   return createHash("sha256").update(raw).digest("hex").slice(0, 24);
@@ -19,9 +30,21 @@ function requestIdentity(request: NextRequest) {
 
 function withinRateLimit(id: string) {
   const now = Date.now();
+  // This limiter is intentionally process-local, but it must not retain one
+  // entry forever for every spoofed address. Prune expired entries periodically
+  // and cap the map as a last-resort memory guard.
+  if (rateLimits.size >= MAX_RATE_ENTRIES) {
+    for (const [key, value] of rateLimits) {
+      if (value.resetAt <= now) rateLimits.delete(key);
+    }
+    if (rateLimits.size >= MAX_RATE_ENTRIES) {
+      const oldestKey = rateLimits.keys().next().value;
+      if (oldestKey) rateLimits.delete(oldestKey);
+    }
+  }
   const entry = rateLimits.get(id);
   if (!entry || entry.resetAt <= now) {
-    rateLimits.set(id, { count: 1, resetAt: now + 60_000 });
+    rateLimits.set(id, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return true;
   }
   if (entry.count >= 8) return false;
@@ -89,26 +112,35 @@ function normalizeModelAdvice(value: unknown): AiAdvice {
 export async function POST(request: NextRequest) {
   const id = requestIdentity(request);
   if (!withinRateLimit(id)) {
-    return NextResponse.json({ error: "问得有点快啦，请一分钟后再试。" }, { status: 429 });
+    return jsonResponse({ error: "问得有点快啦，请一分钟后再试。" }, { status: 429 });
   }
 
   const contentLength = Number(request.headers.get("content-length") || 0);
-  if (contentLength > 12_000) return NextResponse.json({ error: "消息太长了，请精简后再试。" }, { status: 413 });
+  if (Number.isFinite(contentLength) && contentLength > 12_000) return jsonResponse({ error: "消息太长了，请精简后再试。" }, { status: 413 });
 
   let body: unknown;
   try {
-    body = await request.json();
+    // Content-Length is optional and client-controlled. Read the actual body so
+    // chunked requests cannot bypass the payload limit before JSON parsing.
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > 12_000) {
+      return jsonResponse({ error: "消息太长了，请精简后再试。" }, { status: 413 });
+    }
+    body = JSON.parse(rawBody);
   } catch {
-    return NextResponse.json({ error: "请求格式不正确。" }, { status: 400 });
+    return jsonResponse({ error: "请求格式不正确。" }, { status: 400 });
   }
   const parsed = aiChatRequestSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "请检查输入内容。" }, { status: 400 });
+  if (!parsed.success) return jsonResponse({ error: parsed.error.issues[0]?.message || "请检查输入内容。" }, { status: 400 });
 
   const risk = assessHealthRisk(parsed.data.message);
-  if (risk.emergency) return NextResponse.json(emergencyAdvice());
+  if (risk.emergency) return jsonResponse(emergencyAdvice());
 
-  const apiKey = process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) return NextResponse.json(safeFallback(parsed.data.message, risk.medical), { status: 200 });
+  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
+  if (!apiKey) return jsonResponse(safeFallback(parsed.data.message, risk.medical), { status: 200 });
+
+  const apiBaseUrl = (process.env.DEEPSEEK_API_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
+  const model = process.env.DEEPSEEK_MODEL?.trim() || "deepseek-flash";
 
   const messages = [
     { role: "system", content: COOK_ASSISTANT_SYSTEM_PROMPT },
@@ -118,29 +150,33 @@ export async function POST(request: NextRequest) {
   ];
 
   try {
-    const response = await fetch(`${process.env.DEEPSEEK_API_BASE_URL || "https://api.deepseek.com"}/chat/completions`, {
+    const response = await fetch(`${apiBaseUrl}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: process.env.DEEPSEEK_MODEL || "deepseek-v4-flash",
+        model,
         messages,
         thinking: { type: "disabled" },
         response_format: { type: "json_object" },
         max_tokens: 1200,
         temperature: 0.25,
-        user_id: id,
       }),
       signal: AbortSignal.timeout(28_000),
     });
 
     if (!response.ok) {
       console.error("DeepSeek request failed", response.status);
-      return NextResponse.json(safeFallback(parsed.data.message, risk.medical), { status: 200 });
+      return jsonResponse(safeFallback(parsed.data.message, risk.medical), { status: 200 });
     }
 
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string | null } }> };
+    const responseText = await response.text();
+    if (new TextEncoder().encode(responseText).byteLength > 100_000) {
+      console.error("DeepSeek response exceeded the safety limit");
+      return jsonResponse(safeFallback(parsed.data.message, risk.medical), { status: 200 });
+    }
+    const data = JSON.parse(responseText) as { choices?: Array<{ message?: { content?: string | null } }> };
     const content = data.choices?.[0]?.message?.content;
-    if (!content) return NextResponse.json(safeFallback(parsed.data.message, risk.medical));
+    if (!content) return jsonResponse(safeFallback(parsed.data.message, risk.medical));
 
     const advice = normalizeModelAdvice(JSON.parse(content));
     const recipeMap = new Map(recipes.map((recipe) => [recipe.slug, recipe]));
@@ -148,9 +184,9 @@ export async function POST(request: NextRequest) {
       .filter((item) => recipeMap.has(item.slug))
       .filter((item) => recipeMatchesConstraints(recipeMap.get(item.slug)!, parsed.data.message))
       .slice(0, 5);
-    if (advice.urgency === "emergency") return NextResponse.json(emergencyAdvice());
+    if (advice.urgency === "emergency") return jsonResponse(emergencyAdvice());
     if (advice.recommendations.length > 0 && recommendations.length === 0) {
-      return NextResponse.json(safeFallback(parsed.data.message, risk.medical));
+      return jsonResponse(safeFallback(parsed.data.message, risk.medical));
     }
     const result: AiAdvice = {
       ...advice,
@@ -160,9 +196,9 @@ export async function POST(request: NextRequest) {
         ? "不建议极端节食、催吐、减肥药或用固定低热量硬扛。若已经出现头晕、停经、暴食或强烈进食焦虑，请尽快咨询医生或注册营养师。"
         : advice.caution,
     };
-    return NextResponse.json(result);
+    return jsonResponse(result);
   } catch (error) {
     console.error("AI advice unavailable", error instanceof Error ? error.message : "unknown error");
-    return NextResponse.json(safeFallback(parsed.data.message, risk.medical));
+    return jsonResponse(safeFallback(parsed.data.message, risk.medical));
   }
 }

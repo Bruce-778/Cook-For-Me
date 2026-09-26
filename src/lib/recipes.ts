@@ -14,7 +14,10 @@ export type RecipeStep = {
   oilAmountMl?: number; oilTemperature: string; time: string; timerSeconds: number;
   cue: string; ingredients: string[]; ingredientAmounts?: Record<string, number>; safety?: string;
 };
-export type RecipeSource = { name: string; url: string; type: "guideline" | "article" | "video"; verifiedAt: string };
+// `verifiedAt` is the date this source was actually checked.  Draft recipes
+// may carry a useful reference before that check has happened, so keep the
+// date optional instead of inventing a timestamp just to satisfy the shape.
+export type RecipeSource = { name: string; url: string; type: "guideline" | "article" | "video"; verifiedAt?: string };
 export type Recipe = {
   slug: string; title: string; summary: string; image: string; category: string; tags: string[]; featureTags: string[]; aliases: string[];
   dietType: "荤" | "素" | "半荤素"; nutritionRoles: Array<"蛋白质" | "蔬菜" | "主食" | "汤羹" | "甜点">;
@@ -112,8 +115,8 @@ const CATALOG: Spec[] = [
   { slug:"baby-shrimp-tofu-egg",title:"虾仁豆腐蒸蛋",category:"甜点",method:"辅食",primary:["鸡蛋",1,"个","约 50g"],extras:[["鲜虾仁",15,"g","去虾线剁泥"],["嫩豆腐",30,"g","压碎"],["温水",75,"ml"]],prep:10,active:8,wait:10,servings:1,tags:["宝宝辅食"],baby:[12,24,"柔软蛋羹，虾仁剁至 3mm 以下；首次引入虾时单独观察"] },
 ];
 
-const GUIDELINE: RecipeSource = { name:"中国居民膳食指南（2022）",url:"https://dg.cnsoc.org/",type:"guideline",verifiedAt:"2026-07-15" };
-const INFANT_GUIDELINE: RecipeSource = { name:"WS/T 678—2020 婴幼儿辅食添加营养指南",url:"https://www.nhc.gov.cn/wjw/yingyang/202005/f3a01a3cfb5646e2a3fe33544e407a61.shtml",type:"guideline",verifiedAt:"2026-07-15" };
+const GUIDELINE: RecipeSource = { name:"中国居民膳食指南（2022）",url:"https://dg.cnsoc.org/",type:"guideline" };
+const INFANT_GUIDELINE: RecipeSource = { name:"WS/T 678—2020 婴幼儿辅食添加营养指南",url:"https://www.nhc.gov.cn/wjw/yingyang/202005/f3a01a3cfb5646e2a3fe33544e407a61.shtml",type:"guideline" };
 
 // 这里只收录会明显改变成菜风味或工艺的专属调味，不能再由“快炒/红烧”默认值猜测。
 // 审核人员仍需逐道确认这些总量在各步骤中的分配方式。
@@ -594,7 +597,10 @@ function buildRecipe(spec: Spec): Recipe {
     dietType,nutritionRoles,cookingMethod:spec.method,spiceLevel:spec.spice ?? 0,allergens,babyAge:spec.baby?{min:spec.baby[0],max:spec.baby[1],texture:spec.baby[2]}:undefined,
     difficulty:Math.min(5,Math.max(1,Math.ceil((spec.prep+spec.active+spec.wait)/30))) as Recipe["difficulty"],prepMinutes:spec.prep,activeMinutes:spec.active,waitMinutes:spec.wait,cookMinutes:spec.active+spec.wait,servings:spec.servings,
     likes:0,weeklyLikes:0,ingredients,steps:makeSteps(spec,ingredients),tips:[`开始前把${ingredientNames}全部称量并按步骤摆放。`,`完成状态比固定钟表更重要，同时观察颜色、质地和香气。`],failurePoints:[`${mainFailure(spec.method)}；出现异常焦味时立即离火。`],safetyNote:safetyNoteFor(spec,ingredientNames),
-    bilibiliSearchUrl:search,sources:REVIEWED_SOURCES[spec.slug]??[GUIDELINE,spec.baby?INFANT_GUIDELINE:{name:`${spec.title}视频搜索入口`,url:search,type:"video",verifiedAt:"2026-07-15"}],
+    // The Bilibili search URL is a user-facing fallback, not editorial
+    // evidence.  Keep it in `bilibiliSearchUrl` and do not expose it as a
+    // source with a fabricated verification date.
+    bilibiliSearchUrl:search,sources:REVIEWED_SOURCES[spec.slug]??(spec.baby?[GUIDELINE,INFANT_GUIDELINE]:[GUIDELINE]),
   };
 }
 

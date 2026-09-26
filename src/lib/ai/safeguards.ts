@@ -28,16 +28,16 @@ export function emergencyAdvice(): AiAdvice {
 }
 
 const ALLERGEN_TERMS: Array<[RegExp, string[]]> = [
-  [/鸡蛋过敏|蛋类过敏|不吃蛋/, ["蛋"]],
-  [/牛奶过敏|奶过敏|乳制品过敏|乳糖不耐|不喝奶/, ["奶"]],
-  [/花生过敏|坚果过敏|不吃花生/, ["花生", "坚果"]],
-  [/海鲜过敏|不吃海鲜/, ["甲壳类", "鱼类", "贝类"]],
-  [/甲壳类过敏|虾过敏|蟹过敏/, ["甲壳类"]],
-  [/贝类过敏|蚝过敏|蛤蜊过敏|鱿鱼过敏/, ["贝类"]],
-  [/芝麻过敏|不吃芝麻/, ["芝麻"]],
-  [/鱼过敏|不吃鱼/, ["鱼类"]],
-  [/大豆过敏|豆制品过敏|不吃豆/, ["大豆"]],
-  [/麸质过敏|小麦过敏|乳糜泻|无麸质/, ["麸质"]],
+  [/鸡蛋过敏|蛋类过敏|蛋白过敏|蛋清过敏|蛋黄过敏|(?:鸡蛋|蛋类)不耐受|(?:不吃|不要|不能吃|忌)(?:鸡)?蛋/, ["蛋"]],
+  [/牛奶过敏|奶过敏|乳制品过敏|奶制品过敏|乳糖不耐|(?:牛奶|奶|乳制品|奶制品)不耐受|(?:不喝|不吃|不要|不能喝|不能吃|忌)(?:牛)?奶|(?:不吃|不要|不能吃|忌)(?:乳制品|奶制品)/, ["奶"]],
+  [/花生过敏|坚果过敏|花生不耐受|坚果不耐受|(?:不吃|不要|不能吃|忌)(?:花生|坚果)/, ["花生", "坚果"]],
+  [/海鲜过敏|海鲜禁忌|海鲜不耐受|(?:不吃|不要|不能吃|忌)海鲜/, ["甲壳类", "鱼类", "贝类"]],
+  [/甲壳类过敏|虾过敏|蟹过敏|(?:不吃|不要|不能吃|忌)虾|(?:不吃|不要|不能吃|忌)蟹/, ["甲壳类"]],
+  [/贝类过敏|蚝过敏|蛤蜊过敏|鱿鱼过敏|(?:不吃|不要|不能吃|忌)(?:贝类|蚝|蛤蜊|鱿鱼)/, ["贝类"]],
+  [/芝麻过敏|(?:不吃|不要|不能吃|忌)芝麻/, ["芝麻"]],
+  [/鱼过敏|鱼类不耐受|(?:不吃|不要|不能吃|忌)鱼/, ["鱼类"]],
+  [/大豆过敏|豆制品过敏|(?:不吃|不要|不能吃|忌)豆/, ["大豆"]],
+  [/麸质过敏|小麦过敏|麸质不耐受|小麦不耐受|乳糜泻|无麸质|(?:不吃|不要|不能吃|忌)(?:麸质|小麦)/, ["麸质"]],
 ];
 
 export function excludedAllergens(message: string) {
@@ -47,18 +47,23 @@ export function excludedAllergens(message: string) {
 export function recipeConflicts(recipe: Recipe, message: string) {
   const excluded = excludedAllergens(message);
   if (excluded.some((allergen) => recipe.allergens.includes(allergen))) return true;
-  if (/不吃猪肉|猪肉过敏/.test(message) && containsPork(recipe.ingredients)) return true;
+  if (/(?:不吃|不能吃|忌)猪肉|猪肉过敏/.test(message) && containsPork(recipe.ingredients)) return true;
   const ingredients = recipe.ingredients.map((item) => item.name).join("、");
   return [
-    [/不吃牛肉|牛肉过敏/, /牛肉|牛腩|牛里脊|牛肉末/],
-    [/不吃猪肉|猪肉过敏/, /猪肉|猪里脊|猪肋排|五花肉|排骨|二刀肉/],
-    [/不吃羊肉|羊肉过敏/, /羊肉|羊腿肉/],
-    [/不吃香菜|香菜过敏/, /香菜/],
+    [/(?:不吃|不能吃|忌)牛肉|牛肉过敏/, /牛肉|牛腩|牛里脊|牛肉末/],
+    [/(?:不吃|不能吃|忌)猪肉|猪肉过敏/, /猪肉|猪里脊|猪肋排|五花肉|排骨|二刀肉/],
+    [/(?:不吃|不能吃|忌)羊肉|羊肉过敏/, /羊肉|羊腿肉/],
+    [/(?:不吃|不能吃|忌)鸡肉|鸡肉过敏/, /鸡肉|鸡腿|鸡翅|鸡胸|鸡胗/],
+    [/(?:不吃|不能吃|忌)鸭肉|鸭肉过敏/, /鸭肉|鸭腿|鸭胸|鸭翅/],
+    [/(?:不吃|不能吃|忌)香菜|香菜过敏/, /香菜/],
   ].some(([request, ingredient]) => request.test(message) && ingredient.test(ingredients));
 }
 
 export function recipeMatchesConstraints(recipe: Recipe, message: string) {
   if (recipeConflicts(recipe, message)) return false;
+  if (/(?:纯素|严格素食|纯植物|纯植物性|vegan)/i.test(message) && recipe.dietType !== "素") return false;
+  if (/(?:素食|吃素|不吃肉|不吃荤|vegetarian)/i.test(message) && !["素", "半荤素"].includes(recipe.dietType)) return false;
+  if (/(?:清真|穆斯林)/.test(message) && containsPork(recipe.ingredients)) return false;
   const minutes = Number(message.match(/(\d{1,3})\s*分钟/)?.[1] || 0);
   if (minutes && recipe.prepMinutes + recipe.activeMinutes + recipe.waitMinutes > minutes) return false;
   if (/不辣|不吃辣|不要辣|不能吃辣|忌辣/.test(message) && recipe.spiceLevel > 0) return false;
