@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabase/admin";
+export const dynamic = "force-dynamic";
 
 async function counts(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>, recipeId: string) {
   const { count: totalLikes } = await admin.from("recipe_likes").select("*", { count: "exact", head: true }).eq("recipe_id", recipeId);

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { aiAdviceSchema, aiChatRequestSchema, type AiAdvice } from "@/lib/ai/types";
 import { buildRecipeContext, COOK_ASSISTANT_SYSTEM_PROMPT } from "@/lib/ai/prompt";
 import { assessHealthRisk, emergencyAdvice, recipeMatchesConstraints } from "@/lib/ai/safeguards";
-import { recipes, type Recipe } from "@/lib/recipes";
+import { publicRecipes, type Recipe } from "@/lib/recipes";
 
 export const runtime = "nodejs";
 
@@ -54,7 +54,7 @@ function withinRateLimit(id: string) {
 
 function safeFallback(message: string, medical: boolean): AiAdvice {
   const ingredientWords = ["鸡蛋", "番茄", "西红柿", "土豆", "豆腐", "鸡肉", "猪肉", "牛肉", "虾", "鱼", "面条", "米饭", "白菜", "西兰花"].filter((word) => message.includes(word));
-  const eligible = recipes
+  const eligible = publicRecipes
     .filter((recipe) => recipeMatchesConstraints(recipe, message));
   const preferred = eligible
     .sort((a, b) => {
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
   const messages = [
     { role: "system", content: COOK_ASSISTANT_SYSTEM_PROMPT },
-    { role: "system", content: `站内菜谱目录（JSON）：${buildRecipeContext(recipes)}` },
+    { role: "system", content: `站内菜谱目录（JSON）：${buildRecipeContext(publicRecipes)}` },
     ...parsed.data.history,
     { role: "user", content: `${parsed.data.message}\n\n本地风险标记：medical=${risk.medical}; extreme_weight=${risk.extremeWeight}。请输出合法 JSON object。` },
   ];
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
     if (!content) return jsonResponse(safeFallback(parsed.data.message, risk.medical));
 
     const advice = normalizeModelAdvice(JSON.parse(content));
-    const recipeMap = new Map(recipes.map((recipe) => [recipe.slug, recipe]));
+    const recipeMap = new Map(publicRecipes.map((recipe) => [recipe.slug, recipe]));
     const recommendations = advice.recommendations
       .filter((item) => recipeMap.has(item.slug))
       .filter((item) => recipeMatchesConstraints(recipeMap.get(item.slug)!, parsed.data.message))

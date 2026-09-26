@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Heart } from "lucide-react";
 import { FavoritesClient } from "@/components/favorites-client";
-import { recipes } from "@/lib/recipes";
+import { publicRecipes } from "@/lib/recipes";
 
 export const metadata: Metadata = {
   title: "我的收藏",
@@ -16,7 +16,7 @@ export default function FavoritesPage() {
         <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] md:text-5xl">我的收藏</h1>
         <p className="mt-3 leading-7 text-muted-foreground md:text-lg">收藏保存在本机，无需登录。</p>
       </header>
-      <FavoritesClient recipes={recipes} />
+      <FavoritesClient recipes={publicRecipes} />
     </div>
   );
 }

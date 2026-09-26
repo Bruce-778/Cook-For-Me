@@ -40,6 +40,7 @@ async function main() {
   assert.ok(result.recipes.every(recipe => !excluded(recipe, ["海鲜过敏", "不吃猪肉"])));
   assert.ok(result.shoppingList.length > 0);
   await request("/api/blindbox", 400, { servings: 2, maxMinutes: 0, exclusions: ["不吃猪肉"], currentSlugs: ["twice-cooked-pork", "celery-lily"], replaceIndex: 1 });
+  await request("/api/blindbox", 413, { servings: 2, maxMinutes: 0, exclusions: [], currentSlugs: ["x".repeat(17_000)] });
   console.log(`✓ 6 个主页面、${recipes.length} 个详情页、${recipes.length} 个烹饪页、${recipes.length} 个详情 API、完整分页、忌口菜单及错误边界通过本地 HTTP 冒烟测试。`);
   console.log("未调用付费 AI、未写入点赞数据库；HTTP 检查不替代浏览器交互或实做复核。");
 }

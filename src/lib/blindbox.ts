@@ -1,4 +1,4 @@
-import { recipes, type Ingredient, type Recipe } from "@/lib/recipes";
+import { publicRecipes, type Ingredient, type Recipe } from "@/lib/recipes";
 import { containsPork } from "@/lib/food-metadata";
 
 export const DIETARY_OPTIONS = ["不吃辣","不吃香菜","海鲜过敏","不吃牛肉","不吃羊肉","不吃猪肉","蛋过敏","奶过敏","花生/坚果过敏","芝麻过敏","大豆过敏","麸质限制"] as const;
@@ -43,7 +43,7 @@ function mergeShoppingList(items: Recipe[], servings: number) {
 
 export function generateMenu(input: BlindBoxInput): MenuResult {
   if (!Number.isInteger(input.servings) || input.servings < 1 || input.servings > 8) throw new Error("就餐人数需在 1–8 人之间。");
-  const pool = recipes.filter((recipe) => !excluded(recipe,input.exclusions) && !(input.avoidSlugs ?? []).includes(recipe.slug) && (input.babyAge ? (recipe.babyAge && input.babyAge >= recipe.babyAge.min && input.babyAge <= recipe.babyAge.max) : !recipe.babyAge && recipe.category !== "甜点"));
+  const pool = publicRecipes.filter((recipe) => !excluded(recipe,input.exclusions) && !(input.avoidSlugs ?? []).includes(recipe.slug) && (input.babyAge ? (recipe.babyAge && input.babyAge >= recipe.babyAge.min && input.babyAge <= recipe.babyAge.max) : !recipe.babyAge && recipe.category !== "甜点"));
   if(input.babyAge){const candidate=seeded(pool.filter(recipe=>!input.maxMinutes||totalRecipeMinutes(recipe)<=input.maxMinutes),Date.now()%997)[0];if(!candidate)throw new Error("当前月龄、时间和过敏条件下没有合适辅食，请放宽时间或另选已确认适合的食谱，不要取消过敏限制。");return{recipes:[candidate],servings:1,estimatedMinutes:totalRecipeMinutes(candidate),stapleSuggestion:"继续母乳或配方奶；辅食量按宝宝接受程度逐步增加",reason:`适合 ${candidate.babyAge?.min}–${candidate.babyAge?.max} 月龄的单份辅食`,shoppingList:mergeShoppingList([candidate],1)}}
   const count = input.servings <= 2 ? 2 : input.servings <= 4 ? 4 : 5;
   const salt = Date.now()%997;
@@ -55,7 +55,7 @@ export function generateMenu(input: BlindBoxInput): MenuResult {
   let selected = [...proteins.slice(0,neededProtein),...vegetables.slice(0,neededVegetable),...(count>=4?soups.slice(0,1):[])];
   selected = selected.filter((r,i,list) => list.findIndex((v) => v.slug===r.slug)===i).slice(0,count);
   if (input.currentSlugs?.length && input.replaceIndex !== undefined) {
-    const current = input.currentSlugs.map((slug) => recipes.find((recipe) => recipe.slug===slug)).filter((recipe): recipe is Recipe => Boolean(recipe));
+    const current = input.currentSlugs.map((slug) => publicRecipes.find((recipe) => recipe.slug===slug)).filter((recipe): recipe is Recipe => Boolean(recipe));
     if (!Number.isInteger(input.replaceIndex) || input.replaceIndex < 0 || input.replaceIndex >= current.length || current.length !== count || new Set(input.currentSlugs).size !== count || current.some(recipe => excluded(recipe, input.exclusions) || recipe.babyAge || recipe.category === "甜点")) {
       throw new Error("当前菜单与人数或忌口条件不一致，请按最新条件重新生成整桌菜单。");
     }

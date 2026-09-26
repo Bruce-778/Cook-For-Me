@@ -60,6 +60,10 @@
   html { @apply scroll-smooth font-sans; }
   body { @apply bg-background text-foreground antialiased; }
   button, a { -webkit-tap-highlight-color: transparent; }
+  :where(a, button, input, select, textarea):focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--ring) 72%, white);
+    outline-offset: 3px;
+  }
   ::selection { background: #ffd3bd; color: #3a251e; }
 }
 

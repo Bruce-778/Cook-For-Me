@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CookingMode } from "@/components/cooking-mode";
-import { getRecipe, recipes } from "@/lib/recipes";
+import { getRecipe, publicRecipes } from "@/lib/recipes";
 
 export function generateStaticParams() {
-  return recipes.map((recipe) => ({ slug: recipe.slug }));
+  return publicRecipes.map((recipe) => ({ slug: recipe.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

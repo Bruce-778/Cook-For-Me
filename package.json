@@ -13,7 +13,8 @@
     "validate:supabase": "tsx scripts/validate-supabase-schema.ts",
     "validate:videos": "tsx scripts/check-bilibili-links.ts",
     "test:local": "tsx scripts/smoke-local.ts",
-    "seed:supabase": "tsx scripts/sync-recipes-to-supabase.ts"
+    "seed:supabase": "tsx scripts/sync-recipes-to-supabase.ts",
+    "validate:production": "tsx scripts/validate-production-config.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.3",

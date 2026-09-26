@@ -4,14 +4,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ChefHat, CircleAlert, Clock3, Droplets, Flame, Lightbulb, PlayCircle, ShieldCheck, Sparkles, ThermometerSun, Utensils } from "lucide-react";
 import { RecipeDetailClient } from "@/components/recipe-detail-client";
 import { RecipeCard } from "@/components/recipe-card";
-import { getRecipe, recipes, totalMinutes } from "@/lib/recipes";
+import { getRecipe, publicRecipes, totalMinutes } from "@/lib/recipes";
 import { getLikeCountMap } from "@/lib/likes";
 import { DifficultyStars } from "@/components/difficulty-stars";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return recipes.map((recipe) => ({ slug: recipe.slug }));
+  return publicRecipes.map((recipe) => ({ slug: recipe.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -33,7 +33,7 @@ export default async function RecipePage({ params }: PageProps) {
   if (!baseRecipe) notFound();
   const counts=await getLikeCountMap();const count=counts.get(slug);const recipe=count?{...baseRecipe,likes:count.totalLikes,weeklyLikes:count.weeklyLikes}:baseRecipe;
 
-  const similar = recipes
+  const similar = publicRecipes
     .filter((item) => item.slug !== recipe.slug)
     .sort((a, b) => {
       const scoreA = Number(a.category === recipe.category) * 3 + a.tags.filter((tag) => recipe.tags.includes(tag)).length;

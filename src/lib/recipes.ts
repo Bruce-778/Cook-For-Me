@@ -135,7 +135,7 @@ const FLAVORINGS_BY_SLUG: Record<string, Food[]> = {
   "beijing-sauce-pork":[["甜面酱",40,"g"],["白糖",8,"g"],["料酒",10,"ml"],["玉米淀粉",8,"g"],["生抽",8,"ml"]],
   "braised-pork-ribs":[["冰糖",18,"g"],["生抽",25,"ml"],["老抽",6,"ml"],["料酒",20,"ml"],["姜",15,"g"],["八角",2,"个"]],
   "braised-prawn":[["白糖",8,"g"],["料酒",15,"ml"],["生抽",15,"ml"],["姜",12,"g"],["大葱",20,"g"],["清水",80,"ml","用于焖制"]],
-  "braised-hairtail":[["香醋",12,"ml"],["白糖",8,"g"],["料酒",20,"ml"],["生抽",20,"ml"],["老抽",4,"ml"],["姜",15,"g"]],
+  "braised-hairtail":[["香醋",12,"ml"],["白糖",8,"g"],["料酒",20,"ml"],["生抽",20,"ml"],["老抽",4,"ml"],["姜",15,"g"],["清水",300,"ml","焖鱼用，水量至鱼段约一半"]],
   "ginger-scallion-crab":[["料酒",20,"ml"],["生抽",12,"ml"],["玉米淀粉",25,"g"],["白糖",3,"g"]],
   "shredded-potato":[["米醋",20,"ml"],["白糖",3,"g"],["干辣椒",3,"g"],["蒜",10,"g"]],
   "hand-torn-cabbage":[["香醋",12,"ml"],["生抽",12,"ml"],["白糖",4,"g"],["干辣椒",4,"g"],["蒜",10,"g"]],
@@ -630,9 +630,15 @@ export const recipes: Recipe[] = [...CATALOG.map(buildRecipe), ...additionalReci
   const activeMinutes = Math.max(recipe.activeMinutes, stepMinutes - recipe.prepMinutes - recipe.waitMinutes);
   return { ...recipe, ...recipeVideoReferences[recipe.slug], allergens: inferAllergens(recipe.ingredients), dietType: inferDietType(recipe.ingredients), activeMinutes, cookMinutes: activeMinutes + recipe.waitMinutes };
 });
+// Validators and the Supabase seed keep the full catalogue. Public pages and
+// APIs use this view so production can keep draft recipes private until they
+// have a real cooking review.
+export const publicRecipes: Recipe[] = process.env.KEEP_DRAFT_RECIPES_PRIVATE === "true"
+  ? recipes.filter((recipe) => recipe.editorialStatus === "reviewed")
+  : recipes;
 export const ingredientShortcuts = ["鸡蛋","番茄","土豆","豆腐","鸡肉","猪肉","虾","面条"];
 export const categories = ["全部","荤菜","海鲜","蔬菜","面食","汤粥","甜点"];
 export const audienceCategories = ["宝宝辅食","老人友好","清淡恢复","减脂餐","新手推荐"];
 export const cuisineCategories = ["经典川菜","东北风味","湖南风味","广东风味","江浙风味","新疆风味","台湾家常"];
-export const getRecipe = (slug: string) => recipes.find((recipe) => recipe.slug === slug);
+export const getRecipe = (slug: string) => publicRecipes.find((recipe) => recipe.slug === slug);
 export const totalMinutes = (recipe: Recipe) => recipe.prepMinutes + recipe.activeMinutes + recipe.waitMinutes;

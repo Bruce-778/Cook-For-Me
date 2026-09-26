@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Flame, TrendingUp } from "lucide-react";
 import { RankingList } from "@/components/ranking-list";
-import { recipes } from "@/lib/recipes";
+import { publicRecipes } from "@/lib/recipes";
 import { getLikeCountMap } from "@/lib/likes";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function RankingPage() {
   const counts=await getLikeCountMap();
-  const rankedRecipes=recipes.map(recipe=>{const value=counts.get(recipe.slug);return value?{...recipe,likes:value.totalLikes,weeklyLikes:value.weeklyLikes}:recipe}).filter(recipe=>recipe.weeklyLikes>0).sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes || a.title.localeCompare(b.title, "zh-CN"));
+  const rankedRecipes=publicRecipes.map(recipe=>{const value=counts.get(recipe.slug);return value?{...recipe,likes:value.totalLikes,weeklyLikes:value.weeklyLikes}:recipe}).filter(recipe=>recipe.weeklyLikes>0).sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes || a.title.localeCompare(b.title, "zh-CN"));
 
   return (
     <div className="page-shell py-8 md:py-12 lg:py-16">

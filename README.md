@@ -20,7 +20,7 @@ pnpm dev
 ## Supabase 与真实点赞
 
 1. 为 Cook for Me 新建独立 Supabase 项目，在 Auth 设置中启用 Anonymous Sign-Ins；生产环境同时启用 Turnstile/hCaptcha 和匿名注册限流。
-2. 在 `.env.local` 中填入项目 URL、publishable key 和仅服务器可见的 secret key。任何 secret key 都不能使用 `NEXT_PUBLIC_` 前缀。
+2. 在 `.env.local` 或托管平台变量中填入项目 URL、publishable key 和仅服务器可见的 secret key。任何 secret key 都不能使用 `NEXT_PUBLIC_` 前缀；同时明确设置 `KEEP_DRAFT_RECIPES_PRIVATE=true` 或 `false`。两种策略都不会伪造复核状态：设为 `true` 时公开页面、API、AI、盲盒和 Supabase 只提供已逐道实做复核的菜；设为 `false` 时待复核菜也能被浏览，但详情页必须保留“尚未完成逐道实做复核”提示。
 3. 连接项目并应用迁移：
 
 ```bash
@@ -30,7 +30,7 @@ pnpm dlx supabase db push
 pnpm seed:supabase
 ```
 
-种子命令只同步菜谱，不写入点赞记录。默认将 98 道菜同步为可点赞的 `published`，但仅对真正完成复核的菜写入 `reviewed_at`；公开状态不等于内容已复核。若要只发布已复核菜，运行 `KEEP_DRAFT_RECIPES_PRIVATE=true pnpm seed:supabase`。新项目的点赞从 0 开始。同一匿名用户对同一道菜由数据库复合主键保证只能有一个赞。
+种子命令只同步菜谱，不写入点赞记录。默认将 98 道菜同步为可点赞的 `published`，但仅对真正完成复核的菜写入 `reviewed_at`；公开状态不等于内容已复核。若准备面向真实用户开放，建议先运行 `KEEP_DRAFT_RECIPES_PRIVATE=true pnpm seed:supabase`，让待复核菜保留在 `review`，前端也同步隐藏这些草稿；如果确实要让用户先浏览全部菜谱，运行 `KEEP_DRAFT_RECIPES_PRIVATE=false pnpm seed:supabase`，并在页面上如实保留复核状态。新项目的点赞从 0 开始。同一匿名用户对同一道菜由数据库复合主键保证只能有一个赞。
 
 本地 Supabase 可使用：
 
@@ -96,7 +96,10 @@ CHECK_BILIBILI_ONLINE=1 pnpm validate:videos
 
 ## 上线检查
 
+- 部署前在托管平台配置 `.env.example` 中的变量，并运行 `REQUIRE_PRODUCTION_CONFIG=1 pnpm validate:production`。它会阻止缺少 HTTPS 域名、AI/Supabase 密钥或菜谱发布策略不明确的部署，也会阻止误用 `NEXT_PUBLIC_DEEPSEEK_API_KEY`。
+- 若暂时开放待复核菜，生产配置必须显式写 `KEEP_DRAFT_RECIPES_PRIVATE=false`；这只是内容发布策略，不代表菜谱已经实做复核。正式公开做法前，建议改为 `true`，并在完成逐道实做后再逐步发布。
 - 在 Supabase Dashboard 确认所有 `public` 表已启用 RLS，并运行 Database Advisors。
 - 确认生产域名已加入 Auth URL Configuration，匿名登录启用了验证码和合理的每 IP 限流。
 - 托管平台只向服务器注入 `SUPABASE_SECRET_KEY`；浏览器只能访问 publishable key。
+- 生产环境需要配置 `DEEPSEEK_API_KEY`；未配置时系统会安全降级为站内规则推荐，不会暴露上游错误或密钥。
 - 部署后从两台不同设备验证点赞、取消点赞和滚动 7 天排行榜。
