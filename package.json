@@ -8,10 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "validate:content": "tsx scripts/validate-recipes.ts",
+    "validate:content": "tsx scripts/validate-recipes.ts && tsx scripts/validate-dietary.ts",
     "validate:ai": "tsx scripts/validate-ai-safety.ts",
     "validate:supabase": "tsx scripts/validate-supabase-schema.ts",
     "validate:videos": "tsx scripts/check-bilibili-links.ts",
+    "test:local": "tsx scripts/smoke-local.ts",
     "seed:supabase": "tsx scripts/sync-recipes-to-supabase.ts"
   },
   "dependencies": {

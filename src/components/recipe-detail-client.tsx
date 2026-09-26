@@ -217,6 +217,7 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
             <button type="button" onClick={() => setServings((value) => Math.min(8, value + 1))} disabled={servings === 8} aria-label="增加一人份" className="grid size-10 place-items-center rounded-full transition hover:bg-secondary disabled:opacity-35"><Plus className="size-4" /></button>
           </div>
         </div>
+        {servings !== recipe.servings && <p className="mt-4 text-xs leading-5 text-muted-foreground">已换算食材清单；下方步骤文字仍按原配方 {recipe.servings} 人份说明，分次取料请按 {(servings / recipe.servings).toFixed(2)} 倍分配。烹饪时间不按人数等倍变化。</p>}
         <div className="my-5 h-px bg-border" />
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground">
           <div className="rounded-2xl bg-[#fff7ed] p-3"><Clock3 className="mx-auto mb-1 size-5 text-primary" /><strong className="block text-sm text-foreground">{recipe.prepMinutes} 分钟</strong>准备</div>

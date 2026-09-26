@@ -52,6 +52,16 @@ pnpm validate:videos
 pnpm build
 ```
 
+`validate:content` 包含 98 道菜的结构、食材引用、分步时间下限及忌口/换菜回归测试；`validate:ai` 检查服务端推荐过滤；`validate:supabase` 仅检查 SQL 与调用约束，不代表远程数据库已部署。`validate:videos` 默认离线检查字段与 URL，联网检查标题、UP 主和公开状态时运行：
+
+```bash
+CHECK_BILIBILI_ONLINE=1 pnpm validate:videos
+```
+
+启动本地服务后执行 `LOCAL_BASE_URL=http://localhost:3001 pnpm test:local`（备用端口改为 3101）。它检查全部菜谱详情/烹饪页、详情 API、分页、盲盒忌口与错误边界，不调用付费 AI、不写入点赞。
+
+联网检查也不代替完整播放或实做。2026-09-26 的修正范围、参考资料和未完成事项见 [内容检查记录](docs/content-audit-2026-09-26.md)。
+
 ## 当前页面
 
 - `/`：原创暖橙色响应式首页
@@ -66,7 +76,7 @@ pnpm build
 ## 数据与隐私
 
 - 菜谱源数据位于 `src/lib/recipes.ts`、`src/lib/verified-recipes.ts` 和 `src/lib/regional-recipes.ts`；同步脚本为 `scripts/sync-recipes-to-supabase.ts`。
-- 新增菜谱和核对 B 站视频的流程见 `docs/content-maintenance.md`。18 道菜录有视频直链，其余使用同名搜索入口；链接格式检查不等于完整播放核验。
+- 新增菜谱和核对 B 站视频的流程见 `docs/content-maintenance.md`。22 道菜录有视频直链，其中 4 条仅核对公开元数据、尚未完整播放；其余 76 道使用同名搜索入口。链接可访问不等于做法已复核。
 - 收藏、忌口、食材勾选和烹饪进度只写入当前浏览器 localStorage。
 - 点赞使用 Supabase 无感匿名身份和 RLS；网站不收集姓名、邮箱或诊断信息。
 - 菜谱卡片和菜谱详情不展示单菜图片；首页牛排照片与地方风味餐桌图只作氛围视觉，不作为任何一道菜的成品示例。

@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { Recipe } from "@/lib/recipes";
+import { stepIngredientLabels } from "@/lib/step-ingredients";
 import { cn } from "@/lib/utils";
 
 type TimerState = {
@@ -127,17 +128,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
   };
   const progress = ((currentStep + (completedSteps.includes(currentStep) ? 1 : 0)) / recipe.steps.length) * 100;
 
-  const stepIngredients = useMemo(() => {
-    if (!step.ingredients?.length) return [];
-    const ratio = servings / recipe.servings;
-    return step.ingredients.map((name) => {
-      const ingredient = recipe.ingredients.find((item) => item.name === name);
-      if (!ingredient) return { name, amount: null };
-      const amount = (step.ingredientAmounts?.[name] ?? ingredient.amount) * ratio;
-      const formatted = Number.isInteger(amount) ? String(amount) : amount.toFixed(1).replace(/\.0$/, "");
-      return { name, amount: `${formatted}${ingredient.unit}` };
-    });
-  }, [recipe.ingredients, recipe.servings, servings, step.ingredientAmounts, step.ingredients]);
+  const stepIngredients = useMemo(() => stepIngredientLabels(recipe, step, servings), [recipe, step, servings]);
 
   useEffect(() => {
     document.body.classList.add("cooking-mode-active");
@@ -319,6 +310,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
             </div>
           )}
 
+          {servings !== recipe.servings && <p className="mb-4 rounded-2xl border bg-[#fff6d9] p-4 text-sm leading-6">你选择了 {servings} 人份。食材清单和已标注的分步用量按 {(servings / recipe.servings).toFixed(2)} 倍换算，但下方文字中的克数、毫升仍是原配方 {recipe.servings} 人份。分次取料请按相同比例分配；火候与时间不能按人数等倍增加。</p>}
           <article className="overflow-hidden rounded-[28px] border bg-card soft-shadow md:rounded-[34px]">
             <div className="border-b bg-[linear-gradient(135deg,#fff0e2,#fffaf3_65%)] px-5 py-6 md:px-8 md:py-8">
               <div className="mb-4 flex items-center justify-between gap-3">
@@ -331,7 +323,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
             <div className="space-y-6 px-5 py-6 md:px-8 md:py-8">
               {stepIngredients.length > 0 && (
                 <div>
-                  <p className="mb-3 flex items-center gap-2 text-sm font-black text-muted-foreground"><Utensils className="size-4 text-primary" />这一步要用</p>
+                  <p className="mb-3 flex items-center gap-2 text-sm font-black text-muted-foreground"><Utensils className="size-4 text-primary" />本步涉及的食材（回锅不重复加料）</p>
                   <div className="flex flex-wrap gap-2">
                     {stepIngredients.map((ingredient) => <span key={ingredient.name} className="rounded-full border bg-[#fffaf3] px-3.5 py-2 text-sm font-bold">{ingredient.name}{ingredient.amount && <strong className="ml-1.5 text-primary">{ingredient.amount}</strong>}</span>)}
                   </div>
@@ -343,7 +335,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
               <div className="flex flex-wrap gap-2.5">
                 {step.heat !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#ffe4d6] px-4 py-3 font-black text-[#a43e22]"><Flame className="size-5" />{step.heat}</span>}
                 {step.waterTemperature !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#dff2f8] px-4 py-3 font-black text-[#356777]"><Droplets className="size-5" />{step.waterTemperature}</span>}
-                {step.oilTemperature !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#e9f3e4] px-4 py-3 font-black text-[#456341]"><ThermometerSun className="size-5" />{step.oilAmountMl ? `${step.oilAmountMl}ml · ` : ""}{step.oilTemperature}</span>}
+                {step.oilTemperature !== "不适用" && <span className="flex items-center gap-2 rounded-2xl bg-[#e9f3e4] px-4 py-3 font-black text-[#456341]"><ThermometerSun className="size-5" />{step.oilAmountMl ? `${Number((step.oilAmountMl * servings / recipe.servings).toFixed(1))}ml · ` : ""}{step.oilTemperature}</span>}
                 {step.time && <span className="flex items-center gap-2 rounded-2xl bg-[#fff2c7] px-4 py-3 font-black text-[#82600f]"><Clock3 className="size-5" />{step.time}</span>}
               </div>
 

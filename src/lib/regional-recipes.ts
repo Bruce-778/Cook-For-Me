@@ -38,7 +38,7 @@ const regionalAdditions: AdditionalRecipe[] = [
       step("平铺入盘","排骨在宽盘中尽量平铺一层，不要高高堆叠。","不适用","不适用","不适用","2 分钟",120,"排骨大部分不重叠，蒸汽能接触每一块。",["猪肋排"]),
       step("沸水足汽蒸熟","蒸锅水沸、蒸汽充足后放入排骨，大火蒸 22–25 分钟。","大火","沸水","不适用","25 分钟",1500,"排骨最厚处无血色，中心达到 71°C 以上。",["猪肋排"],"开盖时先让蒸汽向远离身体的方向散出。"),
       step("撒葱焖香","关火撒小葱，加盖利用余温焖 2 分钟再取出。","不适用","热水","不适用","2 分钟",120,"葱花变软，盘中汤汁清亮无血水。",["小葱"]),
-    ],tips:["排骨斩小块并平铺，家庭蒸锅更容易蒸透。","淀粉最后加入锁住水分，腌好后不要再额外加水。"],failurePoint:"排骨堆得太厚会导致上层熟了、中心仍夹生。",safetyNote:"排骨最厚处中心至少达到 71°C 且无血水；蒸汽会造成烫伤，开盖时注意方向。",videoUrl:"https://www.bilibili.com/video/BV1BcAZzUEdd/",videoTitle:"香港味道的“豉汁蒸排骨”来啦！粤菜厨师古志辉分享排骨做法",videoCreator:"古志辉",
+    ],tips:["排骨斩小块并平铺，家庭蒸锅更容易蒸透。","淀粉最后加入锁住水分，腌好后不要再额外加水。"],failurePoint:"排骨堆得太厚会导致上层熟了、中心仍夹生。",safetyNote:"排骨最厚处中心至少达到 71°C 且无血水；蒸汽会造成烫伤，开盖时注意方向。",videoUrl:"https://www.bilibili.com/video/BV1BcAZzUEdd/",videoTitle:"香港味道的“豉汁蒸排骨”来啦！今天粤菜厨师古志辉毫无保留分享排骨做法，豉香味浓，这样做出来的排骨肉不柴还不塞牙，满满的细节，都是老广味道和情怀！",videoCreator:"古志辉",
   },
   {
     slug:"three-cup-chicken",title:"三杯鸡",category:"荤菜",tags:["江西风味","台湾家常"],featureTags:["酱香浓郁","鸡肉嫩滑","九层塔香"],dietType:"荤",nutritionRoles:["蛋白质"],cookingMethod:"焖烧",spiceLevel:1,difficulty:3,prepMinutes:15,activeMinutes:18,waitMinutes:20,servings:4,

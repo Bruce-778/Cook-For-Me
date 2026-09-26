@@ -1,6 +1,9 @@
 import { recipeFeatureTags } from "@/lib/recipe-features";
 import { additionalRecipes } from "@/lib/verified-recipes";
 import { regionalRecipes } from "@/lib/regional-recipes";
+import { inferAllergens, inferDietType } from "@/lib/food-metadata";
+import { correctIngredients, dedicatedSteps } from "@/lib/recipe-methods";
+import { recipeVideoReferences } from "@/lib/recipe-videos";
 
 export type IngredientGroup = "主料" | "辅料" | "调料";
 export type Heat = "大火" | "中火" | "小火" | "不适用";
@@ -19,7 +22,7 @@ export type Recipe = {
   difficulty: 1 | 2 | 3 | 4 | 5; prepMinutes: number; activeMinutes: number; waitMinutes: number; cookMinutes: number; servings: number;
   likes: number; weeklyLikes: number; ingredients: Ingredient[]; steps: RecipeStep[]; tips: string[]; failurePoints: string[]; safetyNote: string;
   editorialStatus: "reviewed" | "draft"; reviewedAt?: string; imageVerified: boolean;
-  bilibiliVideoUrl?: string; bilibiliSearchUrl: string; videoTitle?: string; videoCreator?: string; videoVerifiedAt?: string; sources: RecipeSource[];
+  bilibiliVideoUrl?: string; bilibiliSearchUrl: string; videoTitle?: string; videoCreator?: string; videoVerifiedAt?: string; videoMetadataCheckedAt?: string; sources: RecipeSource[];
 };
 
 type Method = "快炒" | "红烧" | "清蒸" | "水煮" | "炖汤" | "煎制" | "面食" | "蒸点" | "甜品" | "辅食" | "凉拌";
@@ -232,16 +235,18 @@ function seasonings(spec: Spec): Ingredient[] {
 function makeIngredients(spec: Spec): Ingredient[] {
   const foods = [spec.primary, ...(spec.extras ?? [])].map(([name,amount,unit,note],index): Ingredient => ({name,amount,unit,note,group:index === 0 ? "主料" : "辅料"}));
   const existing = new Set(foods.map((item) => item.name));
-  return [...foods, ...seasonings(spec).filter((item) => !existing.has(item.name))];
+  const tailored = new Map((FLAVORINGS_BY_SLUG[spec.slug] ?? []).map(([name,amount,unit,note]) => [name, {name,amount,unit,note,group:"调料" as const}]));
+  return correctIngredients(spec.slug, [...foods.map(item => tailored.get(item.name) ?? item), ...seasonings(spec).filter((item) => !existing.has(item.name))]);
 }
 
 function makeSteps(spec: Spec, ingredients: Ingredient[]): RecipeStep[] {
+  if (dedicatedSteps[spec.slug]) return dedicatedSteps[spec.slug];
   const main = spec.primary[0]; const second = spec.extras?.[0]?.[0]; const names = ingredients.map((item) => item.name);
   const extraNames = (spec.extras ?? []).map(item => item[0]);
   const seasoningNames = ingredients.filter((item) => item.group === "调料").map((item) => item.name);
   const step = (title:string,text:string,heat:Heat,waterTemperature:WaterTemperature,oilTemperature:string,time:string,timerSeconds:number,cue:string,used:string[],safety?:string,ingredientAmounts?:Record<string,number>): RecipeStep => {
     const oilAmount = text.match(/(?:食用)?油\s*(\d+)\s*ml/i)?.[1];
-    return {title,text,heat,waterTemperature,oilAmountMl:oilTemperature!=="不适用" ? Number(oilAmount ?? 15) : undefined,oilTemperature,time,timerSeconds,cue,ingredients:used.filter((name) => names.includes(name)),ingredientAmounts,safety};
+    return {title,text,heat,waterTemperature,oilAmountMl:oilAmount ? Number(oilAmount) : ingredientAmounts?.["食用油"],oilTemperature,time,timerSeconds,cue,ingredients:used.filter(Boolean),ingredientAmounts,safety};
   };
   if (spec.slug === "tomato-scrambled-eggs") return [
     step("处理番茄和鸡蛋","番茄顶部划十字，用沸水烫 30 秒后去皮，切成约 2cm 块。鸡蛋加入食盐 0.5g 和清水 10ml，充分打散。","不适用","沸水","不适用","3 分钟",180,"蛋液颜色均匀，番茄块大小接近。",["鸡蛋","食盐","清水"],undefined,{鸡蛋:3,食盐:0.5,清水:10}),
@@ -431,11 +436,11 @@ function makeSteps(spec: Spec, ingredients: Ingredient[]): RecipeStep[] {
     step("蚝油调味离火","加入蚝油、生抽和剩余食盐，大火翻匀约 20 秒后立即关火装盘。","大火","不适用","不适用","20 秒",20,"调味薄而均匀，西兰花鲜绿脆嫩。",["蚝油","生抽","食盐","西兰花"]),
   ];
   if (spec.slug === "mapo-tofu") return [
-    step("豆腐温盐水焯烫","嫩豆腐切块；锅中清水加一半食盐加热到微沸，豆腐滑入后小火焯 2 分钟，连水暂存。","小火","温水","不适用","2 分钟",120,"豆腐中心温热，块形完整且豆腥味减轻。",["嫩豆腐","清水","食盐"]),
+    step("豆腐温盐水焯烫","嫩豆腐切块，蒜切末；另备焯水 1000ml（不计入料汁的 220ml 清水），加食盐 1g 加热到微沸，豆腐滑入后小火焯 2 分钟，连水暂存。","小火","温水","不适用","5 分钟",300,"豆腐中心温热，块形完整且豆腥味减轻。",["嫩豆腐","蒜","食盐"]),
     step("炒熟牛肉末","炒锅中火预热后倒入食用油，下牛肉末持续划散 3 分钟。","中火","不适用","油面出现细小波纹","3 分钟",180,"牛肉末松散、完全变色且略微焦香。",["牛肉末","食用油"],"牛肉末必须完全变色，不保留粉红肉粒。"),
     step("炒出红油香气","转小火，加入郫县豆瓣酱、豆豉、蒜和辣椒粉炒 1 分钟。","小火","不适用","不适用","1 分钟",60,"锅中出现红油，酱香明显但蒜和辣椒没有焦黑。",["郫县豆瓣酱","豆豉","蒜","辣椒粉"]),
-    step("豆腐入锅烧透","加入清水和生抽煮沸，豆腐沥水后轻轻滑入，中小火不加盖烧 4 分钟，只推锅不大力翻动。","小火","热水","不适用","4 分钟",240,"豆腐中心热透，汤汁减少约三分之一。",["清水","生抽","嫩豆腐"]),
-    step("分次勾芡","玉米淀粉加等量冷水调匀，分 2 次淋入，每次沿同一方向轻推至汤汁重新沸腾。","中火","冷水","不适用","1 分钟",60,"芡汁均匀包裹豆腐，锅底仍保留少量流动汤汁。",["玉米淀粉","嫩豆腐"]),
+    step("豆腐入锅烧透","加入清水 200ml 和生抽煮沸，豆腐沥水后轻轻滑入，中小火不加盖烧 4 分钟，只推锅不大力翻动。","小火","热水","不适用","4 分钟",240,"豆腐中心热透，汤汁减少约三分之一。",["清水","生抽","嫩豆腐"]),
+    step("分次勾芡","玉米淀粉 8g 加剩余冷水 20ml 调匀，分 2 次淋入，每次沿同一方向轻推至汤汁重新沸腾。","中火","冷水","不适用","1 分钟",60,"芡汁均匀包裹豆腐，锅底仍保留少量流动汤汁。",["玉米淀粉","清水","嫩豆腐"]),
     step("花椒粉收尾","加入剩余食盐，关火后均匀撒花椒粉，端锅轻晃两下即可装盘。","不适用","不适用","不适用","30 秒",30,"豆腐完整，麻辣香气清晰且芡汁明亮。",["食盐","花椒粉","嫩豆腐"]),
   ];
   if (spec.slug === "dry-fried-green-beans") return [
@@ -577,7 +582,7 @@ function buildRecipe(spec: Spec): Recipe {
   const ingredients = makeIngredients(spec);
   const ingredientNames = ingredients.map((item) => item.name).join("、");
   const allergens = [...new Set(ingredients.flatMap((item) => allergenFor(item.name)))];
-  const tags = [...new Set([spec.category, ...(spec.tags ?? []), spec.baby ? "宝宝辅食" : "", spec.spice ? "香辣" : "清淡"].filter(Boolean))];
+  const tags = [...new Set([spec.category, ...(spec.tags ?? []), spec.baby ? "宝宝辅食" : "", spec.spice ? "香辣" : "不辣"].filter(Boolean))];
   const dietType = spec.category === "蔬菜" && !ingredientNames.match(/肉|鸡|蛋|虾|鱼/) ? "素" : spec.category === "蔬菜" || spec.title.includes("番茄炒蛋") ? "半荤素" : "荤";
   const nutritionRoles: Recipe["nutritionRoles"] = spec.category === "蔬菜" ? ["蔬菜"] : spec.category === "面食" ? ["主食"] : spec.category === "汤粥" ? ["汤羹"] : spec.category === "甜点" ? ["甜点"] : ["蛋白质"];
   const search = `https://search.bilibili.com/all?keyword=${encodeURIComponent(`${spec.title} 做法`)}`;
@@ -596,9 +601,9 @@ function buildRecipe(spec: Spec): Recipe {
 function safetyNoteFor(spec: Spec, ingredientNames: string) {
   if (spec.baby) return "需由成人全程看护进食；首次引入常见过敏原时一次只尝试一种，并连续观察是否出现不适。";
   const notes = ["生熟分开处理，接触生肉、蛋和水产的刀板及筷子不得再接触熟食。"];
-  if (/鸡|鸡翅|禽/.test(ingredientNames)) notes.push("禽肉最厚处中心温度达到 74°C；不要只凭外皮上色判断熟度。");
+  if (/鸡腿|鸡翅|鸡胸|鸡肉|鸡中翅|鸡块|鸭|禽/.test(ingredientNames)) notes.push("禽肉最厚处中心温度达到 74°C；不要只凭外皮上色判断熟度。");
   else if (/肉末|肉馅|猪肉馅|牛肉末/.test(ingredientNames)) notes.push("肉馅或肉末中心温度达到 71°C。 ");
-  else if (/牛|猪|羊|排骨|里脊|五花肉/.test(ingredientNames)) notes.push("整块牛、猪、羊肉中心至少达到 63°C，并离火静置 3 分钟；中式炖煮菜应达到全熟口感。 ");
+  else if (/牛肉|牛腩|猪|羊肉|排骨|里脊|五花肉/.test(ingredientNames)) notes.push("整块牛、猪、羊肉中心至少达到 63°C，并离火静置 3 分钟；中式炖煮菜应达到全熟口感。 ");
   if (/鱼|虾|蟹|蛤蜊|扇贝|生蚝|鱿鱼/.test(ingredientNames)) notes.push("鱼贝虾蟹中心至少达到 63°C；蛤蜊等双壳贝类加热后仍不开口的丢弃。 ");
   if (/鸡蛋|蛋清/.test(ingredientNames)) notes.push("蛋液应完全凝固；蛋类菜肴中心达到 71°C。 ");
   return notes.join("");
@@ -613,7 +618,12 @@ function mainFailure(method: Method) {
   return "严格按步骤判断中心熟度，不要只凭表面颜色提前出锅";
 }
 
-export const recipes: Recipe[] = [...CATALOG.map(buildRecipe), ...additionalRecipes, ...regionalRecipes];
+export const recipes: Recipe[] = [...CATALOG.map(buildRecipe), ...additionalRecipes, ...regionalRecipes].map((recipe) => {
+  // 顺序操作的计时总和是总时长的下限，不能出现卡片比步骤本身还快的承诺。
+  const stepMinutes = Math.ceil(recipe.steps.reduce((sum, step) => sum + step.timerSeconds, 0) / 60);
+  const activeMinutes = Math.max(recipe.activeMinutes, stepMinutes - recipe.prepMinutes - recipe.waitMinutes);
+  return { ...recipe, ...recipeVideoReferences[recipe.slug], allergens: inferAllergens(recipe.ingredients), dietType: inferDietType(recipe.ingredients), activeMinutes, cookMinutes: activeMinutes + recipe.waitMinutes };
+});
 export const ingredientShortcuts = ["鸡蛋","番茄","土豆","豆腐","鸡肉","猪肉","虾","面条"];
 export const categories = ["全部","荤菜","海鲜","蔬菜","面食","汤粥","甜点"];
 export const audienceCategories = ["宝宝辅食","老人友好","清淡恢复","减脂餐","新手推荐"];

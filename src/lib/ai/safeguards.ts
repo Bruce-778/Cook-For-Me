@@ -1,5 +1,6 @@
 import type { AiAdvice } from "@/lib/ai/types";
 import type { Recipe } from "@/lib/recipes";
+import { containsPork } from "@/lib/food-metadata";
 
 const EMERGENCY_PATTERN = /呼吸困难|喘不上气|失去意识|昏迷|抽搐|严重胸痛|胸口剧痛|嘴唇发紫|大量出血|呕血|便血|黑便|严重过敏|喉咙肿|吞咽困难|自杀|不想活|轻生/;
 const MEDICAL_PATTERN = /生病|发烧|高烧|腹泻|呕吐|胃痛|肚子痛|糖尿病|高血压|肾病|肝病|痛风|孕妇|怀孕|哺乳|术后|化疗|过敏|乳糖不耐|胆囊|胰腺|冠心病|进食障碍|厌食|暴食/;
@@ -28,12 +29,15 @@ export function emergencyAdvice(): AiAdvice {
 
 const ALLERGEN_TERMS: Array<[RegExp, string[]]> = [
   [/鸡蛋过敏|蛋类过敏|不吃蛋/, ["蛋"]],
-  [/牛奶过敏|乳制品过敏|乳糖不耐|不喝奶/, ["乳制品"]],
+  [/牛奶过敏|奶过敏|乳制品过敏|乳糖不耐|不喝奶/, ["奶"]],
   [/花生过敏|坚果过敏|不吃花生/, ["花生", "坚果"]],
-  [/海鲜过敏|甲壳类过敏|虾过敏|蟹过敏|不吃海鲜/, ["甲壳类", "鱼类"]],
+  [/海鲜过敏|不吃海鲜/, ["甲壳类", "鱼类", "贝类"]],
+  [/甲壳类过敏|虾过敏|蟹过敏/, ["甲壳类"]],
+  [/贝类过敏|蚝过敏|蛤蜊过敏|鱿鱼过敏/, ["贝类"]],
+  [/芝麻过敏|不吃芝麻/, ["芝麻"]],
   [/鱼过敏|不吃鱼/, ["鱼类"]],
   [/大豆过敏|豆制品过敏|不吃豆/, ["大豆"]],
-  [/麸质过敏|乳糜泻|无麸质/, ["麸质"]],
+  [/麸质过敏|小麦过敏|乳糜泻|无麸质/, ["麸质"]],
 ];
 
 export function excludedAllergens(message: string) {
@@ -43,6 +47,7 @@ export function excludedAllergens(message: string) {
 export function recipeConflicts(recipe: Recipe, message: string) {
   const excluded = excludedAllergens(message);
   if (excluded.some((allergen) => recipe.allergens.includes(allergen))) return true;
+  if (/不吃猪肉|猪肉过敏/.test(message) && containsPork(recipe.ingredients)) return true;
   const ingredients = recipe.ingredients.map((item) => item.name).join("、");
   return [
     [/不吃牛肉|牛肉过敏/, /牛肉|牛腩|牛里脊|牛肉末/],
