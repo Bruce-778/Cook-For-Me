@@ -1,3 +1,4 @@
+
 create extension if not exists pgcrypto;
 
 create table public.recipes (
