@@ -1,22 +1,26 @@
 # Cook for Me
 
-面向中国家庭、做饭新手和特定饮食场景的中文家常菜网站。当前包含 80 道结构化菜谱、分龄宝宝辅食、真实点赞/滚动 7 天排行榜、食物盲盒、忌口过滤、购物清单、人数换算和逐步烹饪模式。
+面向中国家庭和做饭新手的中文家常菜网站。收录 98 道结构化菜谱，支持分类筛选、地方风味、食物盲盒、购物清单、人数换算、逐步烹饪模式与 DeepSeek「问小厨」。收藏保存在本机浏览器；配置 Supabase 后启用真实点赞和滚动 7 天排行榜。
+
+内容状态必须区分：98 道菜均通过自动结构检查，其中 **1 道有逐项人工复核记录，97 道仍待实做复核**。结构检查不证明味道、时间和成熟状态在每种锅具上都正确；页面会保留该状态，不能把待复核菜写成已复核。
 
 ## 本地启动
 
-环境要求：Node.js 22+、pnpm 11+。不配置 Supabase 时可浏览菜谱预览和使用本地收藏；点赞会明确提示服务尚未连接，不会回退到假数据。食物盲盒和烹饪模式只使用已完成逐道复核的菜谱，复核数量不足时会明确停用，不用草稿凑数。
+环境要求：Node.js 22+、pnpm 11+。不配置 Supabase 时可浏览菜谱和使用本地收藏；点赞会提示服务尚未连接。待复核菜也可在本地查看、加入盲盒和进入烹饪模式，详情页会显示其复核状态。
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-打开 [http://localhost:3001](http://localhost:3001)。本项目将 3001 固定为本地开发端口，避免与其他项目占用的 3000 端口冲突。
+打开 [http://localhost:3001](http://localhost:3001)。开发脚本使用 3001；若该端口已被其他项目占用，可临时运行 `pnpm exec next dev -p 3101`，并访问对应端口。
+
+要启用 AI 助手，复制 `.env.example` 为 `.env.local`，填入服务端 `DEEPSEEK_API_KEY`。没有密钥时接口会返回站内保守推荐。密钥不得使用 `NEXT_PUBLIC_` 前缀，也不得提交到 Git。
 
 ## Supabase 与真实点赞
 
 1. 为 Cook for Me 新建独立 Supabase 项目，在 Auth 设置中启用 Anonymous Sign-Ins；生产环境同时启用 Turnstile/hCaptcha 和匿名注册限流。
-2. 复制 `.env.example` 为 `.env.local`，填入项目 URL、publishable key 和仅服务器可见的 secret key。任何 secret key 都不能使用 `NEXT_PUBLIC_` 前缀。
+2. 在 `.env.local` 中填入项目 URL、publishable key 和仅服务器可见的 secret key。任何 secret key 都不能使用 `NEXT_PUBLIC_` 前缀。
 3. 连接项目并应用迁移：
 
 ```bash
@@ -26,7 +30,7 @@ pnpm dlx supabase db push
 pnpm seed:supabase
 ```
 
-种子命令只同步菜谱，不写入点赞记录。默认同步全部 80 道公开菜谱，使每一道菜都能正常点赞；内部的逐道复核状态继续单独保留，不再用它隐藏菜谱或关闭烹饪功能。如需在内容编辑期间只发布已复核菜谱，可临时设置 `KEEP_DRAFT_RECIPES_PRIVATE=true`。新项目所有菜的总赞和最近 7 天点赞都从 0 开始。同一匿名用户与同一道菜由数据库复合主键保证只能存在一个赞。
+种子命令只同步菜谱，不写入点赞记录。默认将 98 道菜同步为可点赞的 `published`，但仅对真正完成复核的菜写入 `reviewed_at`；公开状态不等于内容已复核。若要只发布已复核菜，运行 `KEEP_DRAFT_RECIPES_PRIVATE=true pnpm seed:supabase`。新项目的点赞从 0 开始。同一匿名用户对同一道菜由数据库复合主键保证只能有一个赞。
 
 本地 Supabase 可使用：
 
@@ -42,6 +46,7 @@ pnpm seed:supabase
 pnpm lint
 pnpm typecheck
 pnpm validate:content
+pnpm validate:ai
 pnpm validate:supabase
 pnpm validate:videos
 pnpm build
@@ -51,6 +56,7 @@ pnpm build
 
 - `/`：原创暖橙色响应式首页
 - `/discover`：菜名/食材搜索、分类、时间和排序筛选
+- `/assistant`：按现有食材、时间、忌口与一般饮食目标推荐站内菜谱
 - `/blindbox`：食物盲盒——按人数、时间、忌口和宝宝月龄生成整桌菜单与购物清单
 - `/recipes/[slug]`：菜谱详情、人数换算和食材勾选
 - `/cook/[slug]`：沉浸式逐步烹饪、计时和进度恢复
@@ -59,23 +65,24 @@ pnpm build
 
 ## 数据与隐私
 
-- 菜谱源数据位于 `src/lib/recipes.ts`，同步脚本为 `scripts/sync-recipes-to-supabase.ts`。
-- 持续新增菜谱和核验 B 站具体视频的标准流程见 `docs/content-maintenance.md`；未核验直链时页面只展示搜索兜底，不伪装成精选视频。
+- 菜谱源数据位于 `src/lib/recipes.ts`、`src/lib/verified-recipes.ts` 和 `src/lib/regional-recipes.ts`；同步脚本为 `scripts/sync-recipes-to-supabase.ts`。
+- 新增菜谱和核对 B 站视频的流程见 `docs/content-maintenance.md`。18 道菜录有视频直链，其余使用同名搜索入口；链接格式检查不等于完整播放核验。
 - 收藏、忌口、食材勾选和烹饪进度只写入当前浏览器 localStorage。
 - 点赞使用 Supabase 无感匿名身份和 RLS；网站不收集姓名、邮箱或诊断信息。
-- 未通过视觉核验的 Unsplash 大类图片不再渲染；当前只启用匹配的本地番茄炒蛋图片，其余菜完成一菜一图核验后再开放。
+- 菜谱卡片和菜谱详情不展示单菜图片；首页牛排照片与地方风味餐桌图只作氛围视觉，不作为任何一道菜的成品示例。
 - “清淡恢复”“老人友好”“减脂餐”是一般场景标签，不是医疗建议；特殊医学用途饮食请遵医嘱。
+- AI 助手的数据发送范围、提示词限制与降级机制见 `docs/ai-assistant.md`。
 
 ## Git worktrees
 
-本项目采用多个独立 worktree 并行开发：
+早期使用过以下独立分支开展并行开发，功能已合入主分支：
 
 - `feature/cook-for-me-site`：设计系统、首页、发现与最终整合
 - `feature/recipe-detail`：菜谱详情
 - `feature/cooking-mode`：烹饪模式
 - `feature/library-pages`：收藏与排行
 
-各功能验证通过后合并回 `feature/cook-for-me-site`，主目录 `main` 保持稳定。
+后续维护以主目录 `main` 为准；不要把这些历史分支当作当前功能的唯一来源。
 
 ## 上线检查
 

@@ -4,7 +4,6 @@ import { ArrowRight, CalendarDays, Carrot, ChevronRight, Clock3, Gift, Search, S
 import { RecipeCard } from "@/components/recipe-card";
 import { Brand } from "@/components/site-header";
 import { ingredientShortcuts, recipes } from "@/lib/recipes";
-import { ComingSoon } from "@/components/coming-soon";
 import { getLikeCountMap } from "@/lib/likes";
 
 const ingredientEmoji: Record<string, string> = { 鸡蛋: "🥚", 番茄: "🍅", 土豆: "🥔", 胡萝卜: "🥕", 青椒: "🫑", 豆腐: "◻️", 鸡肉: "🍗", 面条: "🍜" };
@@ -13,7 +12,9 @@ export default async function Home() {
   const counts = await getLikeCountMap();
   const withLikes = recipes.map((recipe) => { const value=counts.get(recipe.slug); return value?{...recipe,likes:value.totalLikes,weeklyLikes:value.weeklyLikes}:recipe; });
   const hasLikes = withLikes.some((recipe) => recipe.weeklyLikes > 0);
-  const popular = [...withLikes].sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes).slice(0, 8);
+  const popular = hasLikes
+    ? [...withLikes].sort((a, b) => b.weeklyLikes - a.weeklyLikes || b.likes - a.likes).slice(0, 8)
+    : withLikes.slice(-8).reverse();
   return <>
     <section className="relative overflow-hidden pb-10 pt-4 md:pb-16 md:pt-10">
       <div className="page-shell md:hidden"><Brand /></div>
@@ -41,9 +42,11 @@ export default async function Home() {
 
     <section className="page-shell py-8 md:py-12"><div className="grid gap-4 md:grid-cols-[1.15fr_.85fr] md:grid-rows-2">
       <Link href="/discover" className="group relative min-h-64 overflow-hidden rounded-[28px] bg-[#ffe2d1] p-6 md:row-span-2 md:min-h-[390px] md:p-9"><div className="relative z-10 max-w-sm"><span className="text-sm font-black text-primary">按食材找菜</span><h2 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">家里有什么，<br />就从什么开始。</h2><p className="mt-4 max-w-xs leading-7 text-muted-foreground">按鸡蛋、番茄、土豆等常用食材快速筛选，不用先想好菜名。</p><span className="mt-7 inline-flex size-12 items-center justify-center rounded-full bg-primary text-white transition group-hover:translate-x-1"><ArrowRight /></span></div><Carrot className="absolute -bottom-9 -right-8 size-56 rotate-[-18deg] text-primary/25 md:size-72" strokeWidth={1.2} /></Link>
-      <Link href="/discover?sort=featured" className="group relative min-h-44 overflow-hidden rounded-[26px] bg-[#e9f3e4] p-6"><div className="relative z-10"><span className="text-sm font-black text-[#5e8557]">今日精选</span><h3 className="mt-2 text-2xl font-black">每天认真挑几道</h3><p className="mt-2 text-sm text-muted-foreground">新鲜，不重样。</p></div><CalendarDays className="absolute bottom-[-12px] right-3 size-32 text-[#5e8557]/28" strokeWidth={1.4} /></Link>
-      <ComingSoon />
+      <Link href="/discover?tag=新手推荐" className="group relative min-h-44 overflow-hidden rounded-[26px] bg-[#e9f3e4] p-6"><div className="relative z-10"><span className="text-sm font-black text-[#5e8557]">新手好上手</span><h3 className="mt-2 text-2xl font-black">从简单的菜开始</h3><p className="mt-2 text-sm text-muted-foreground">步骤清楚，做饭更有底气。</p></div><CalendarDays className="absolute bottom-[-12px] right-3 size-32 text-[#5e8557]/28" strokeWidth={1.4} /></Link>
+      <Link href="/assistant" className="group relative min-h-44 overflow-hidden rounded-[26px] bg-[#f7e8ef] p-6"><div className="relative z-10"><span className="inline-flex items-center gap-1.5 text-sm font-black text-[#9b5d78]"><Sparkles className="size-4" />DeepSeek 饮食助手</span><h3 className="mt-2 text-2xl font-black">不知道怎么吃，就问小厨</h3><p className="mt-2 max-w-xs text-sm text-muted-foreground">食材、时间、忌口和目标，一句话告诉它。</p></div><Sparkles className="absolute bottom-[-14px] right-4 size-32 text-[#9b5d78]/20 transition-transform group-hover:rotate-6 group-hover:scale-105" strokeWidth={1.35} /></Link>
     </div></section>
+
+    <section className="page-shell py-8 md:py-12"><div className="relative min-h-[310px] overflow-hidden rounded-[30px] bg-[#f2eadf] md:min-h-[380px]"><Image src="/images/editorial/regional-table-spread.png" alt="摆满多种家常风味菜肴的温暖餐桌" fill sizes="(max-width:768px) 100vw, 1240px" className="object-cover object-[66%_center] md:object-center" /><div className="absolute inset-0 bg-gradient-to-r from-[#fff8ed] via-[#fff8ed]/90 to-transparent md:via-[#fff8ed]/65" /><div className="relative z-10 max-w-xl px-6 py-8 md:px-10 md:py-12"><p className="text-sm font-black text-[#5e8557]">八方风味，慢慢收进来</p><h2 className="mt-2 text-3xl font-black tracking-tight md:text-5xl">不只“吃什么”，<br />也可以选今天想念哪里的味道。</h2><p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground md:text-base">从川味下饭、东北家常到清淡汤粥，先按心情逛，再决定今晚这一桌。</p><div className="mt-6 flex flex-wrap gap-2">{["经典川菜","东北家常菜","下饭菜","清淡恢复","面食","甜点"].map((flavor) => <Link key={flavor} href={flavor === "面食" || flavor === "甜点" ? `/discover?category=${flavor}` : `/discover?q=${flavor}`} className="min-h-11 rounded-full border border-white/80 bg-white/85 px-4 py-3 text-sm font-bold shadow-sm transition hover:-translate-y-0.5 hover:border-primary/25 hover:text-primary">{flavor}</Link>)}</div></div></div></section>
 
     <section className="page-shell py-8 md:py-14"><div className="flex items-end justify-between"><div><p className="text-sm font-bold text-primary">{hasLikes?"🔥 最近 7 天的真实点赞":"刚上桌，不造热度"}</p><h2 className="mt-1 text-2xl font-black tracking-tight md:text-3xl">{hasLikes?"本周人气菜谱":"新菜上桌"}</h2></div><Link href={hasLikes?"/ranking":"/discover"} className="flex items-center text-sm font-semibold text-muted-foreground hover:text-primary">{hasLikes?"查看排行":"查看全部"}<ChevronRight className="size-4" /></Link></div><div className="mt-6 grid grid-cols-2 gap-3.5 md:grid-cols-3 md:gap-5 lg:grid-cols-4">{popular.map((recipe, index) => <RecipeCard key={recipe.slug} recipe={recipe} priority={index < 2} />)}</div></section>
 

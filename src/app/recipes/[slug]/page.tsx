@@ -123,23 +123,23 @@ export default async function RecipePage({ params }: PageProps) {
               {recipe.failurePoints.map(point=><div key={point} className="flex gap-4 rounded-[22px] border border-[#b83e32]/20 bg-[#fff2ee] p-5"><span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#b83e32]/10 text-destructive"><CircleAlert className="size-5" /></span><div><h3 className="font-black">常见翻车点</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{point}</p></div></div>)}
               <div className="flex gap-4 rounded-[22px] border bg-[#edf5e8] p-5 sm:col-span-2"><ShieldCheck className="size-6 shrink-0 text-[#456341]"/><div><h3 className="font-black">食品安全</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{recipe.safetyNote}</p></div></div>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">{recipe.bilibiliVideoUrl&&<a href={recipe.bilibiliVideoUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />观看已核验 B 站视频</a>}<a href={recipe.bilibiliSearchUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />{recipe.bilibiliVideoUrl?"搜索同名做法":"去 B 站搜索同名做法"}</a></div>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">{recipe.bilibiliVideoUrl?`已核验：${recipe.videoTitle} · ${recipe.videoCreator} · ${recipe.videoVerifiedAt}`:"暂未收录已核验的具体视频直链，当前提供同名搜索入口。"} 视频只用于辅助观察，精确用量与步骤以本站当前菜谱为准。</p>
+            <div className="mt-5 flex flex-wrap gap-3">{recipe.bilibiliVideoUrl&&<a href={recipe.bilibiliVideoUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />观看精选 B 站视频</a>}<a href={recipe.bilibiliSearchUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />{recipe.bilibiliVideoUrl?"搜索同名做法":"去 B 站搜索同名做法"}</a></div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">{recipe.bilibiliVideoUrl?`收录资料：${recipe.videoTitle} · ${recipe.videoCreator} · 记录日期 ${recipe.videoVerifiedAt}`:"暂未收录具体视频直链，当前提供同名搜索入口。"} 视频用于观察做法，烹饪时还应以食材成熟状态与食品安全提示判断。</p>
           </section>
 
           <section>
             <p className="mb-1 text-sm font-bold text-primary">EDITORIAL REVIEW</p>
-            <h2 className="text-2xl font-black tracking-tight sm:text-3xl">内容核验记录</h2>
+            <h2 className="text-2xl font-black tracking-tight sm:text-3xl">内容状态与参考资料</h2>
             <div className="mt-5 rounded-[22px] border bg-card p-5 sm:p-6">
               <div className="flex items-start gap-3">
                 <ShieldCheck className={`mt-0.5 size-6 shrink-0 ${recipe.editorialStatus==="reviewed"?"text-[#4f7b48]":"text-[#b67d08]"}`} />
                 <div>
-                  <h3 className="font-black">{recipe.editorialStatus==="reviewed"?`已于 ${recipe.reviewedAt} 完成逐项复核`:"已建立备菜与步骤，正在持续校对细节"}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">核验范围包括食材总量、分步取用、火候、水温、油温、计时、完成状态、食品安全与成品图。不同灶具和锅具升温速度不同，页面同时提供可观察状态，不能只按分钟机械操作。</p>
+                  <h3 className="font-black">{recipe.editorialStatus==="reviewed"?`已于 ${recipe.reviewedAt} 完成逐项复核`:"这道菜尚未完成逐道实做复核"}</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{recipe.editorialStatus==="reviewed"?"已核对食材总量、分步取用、火候、计时、完成状态和食品安全。":"现有食材与步骤通过了结构检查，具体用量和实际耗时仍需实做校对。"} 不同灶具和锅具升温速度不同，请同时观察步骤中的成熟状态。</p>
                 </div>
               </div>
               <ul className="mt-5 space-y-2 border-t pt-4 text-sm leading-6">
-                {recipe.sources.map((source)=><li key={`${source.name}-${source.url}`} className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"><a href={source.url} target="_blank" rel="noreferrer" className="font-bold text-primary underline-offset-4 hover:underline">{source.name}</a><span className="text-xs text-muted-foreground">{source.type} · 核验日期 {source.verifiedAt}</span></li>)}
+                {recipe.sources.map((source)=><li key={`${source.name}-${source.url}`} className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"><a href={source.url} target="_blank" rel="noreferrer" className="font-bold text-primary underline-offset-4 hover:underline">{source.name}</a><span className="text-xs text-muted-foreground">{source.type} · {recipe.editorialStatus==="reviewed"?"核验":"资料记录"}日期 {source.verifiedAt}</span></li>)}
               </ul>
             </div>
           </section>

@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
-import { ChefHat, Flame, Gift, Heart, Home } from "lucide-react";
+import { ChefHat, Gift, Heart, Home, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-const items = [{ href: "/", label: "首页", icon: Home }, { href: "/discover", label: "分类", icon: ChefHat }, { href: "/blindbox", label: "食物盲盒", icon: Gift }, { href: "/ranking", label: "排行", icon: Flame }, { href: "/favorites", label: "收藏", icon: Heart }];
+const items = [{ href: "/", label: "首页", icon: Home }, { href: "/discover", label: "分类", icon: ChefHat }, { href: "/assistant", label: "问小厨", icon: Sparkles }, { href: "/blindbox", label: "盲盒", icon: Gift }, { href: "/favorites", label: "收藏", icon: Heart }];
 export function BottomNav() {
   const pathname = usePathname();
   if (pathname.startsWith("/cook/")) return null;

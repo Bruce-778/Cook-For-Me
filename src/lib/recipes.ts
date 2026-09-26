@@ -1,4 +1,6 @@
 import { recipeFeatureTags } from "@/lib/recipe-features";
+import { additionalRecipes } from "@/lib/verified-recipes";
+import { regionalRecipes } from "@/lib/regional-recipes";
 
 export type IngredientGroup = "主料" | "辅料" | "调料";
 export type Heat = "大火" | "中火" | "小火" | "不适用";
@@ -611,9 +613,10 @@ function mainFailure(method: Method) {
   return "严格按步骤判断中心熟度，不要只凭表面颜色提前出锅";
 }
 
-export const recipes: Recipe[] = CATALOG.map(buildRecipe);
+export const recipes: Recipe[] = [...CATALOG.map(buildRecipe), ...additionalRecipes, ...regionalRecipes];
 export const ingredientShortcuts = ["鸡蛋","番茄","土豆","豆腐","鸡肉","猪肉","虾","面条"];
 export const categories = ["全部","荤菜","海鲜","蔬菜","面食","汤粥","甜点"];
 export const audienceCategories = ["宝宝辅食","老人友好","清淡恢复","减脂餐","新手推荐"];
+export const cuisineCategories = ["经典川菜","东北风味","湖南风味","广东风味","江浙风味","新疆风味","台湾家常"];
 export const getRecipe = (slug: string) => recipes.find((recipe) => recipe.slug === slug);
 export const totalMinutes = (recipe: Recipe) => recipe.prepMinutes + recipe.activeMinutes + recipe.waitMinutes;
