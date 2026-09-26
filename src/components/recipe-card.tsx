@@ -17,11 +17,11 @@ export function RecipeCard({ recipe }: { recipe: Recipe; priority?: boolean }) {
           <h3 className="text-xl font-black tracking-tight sm:text-2xl">{recipe.title}</h3>
         </div>
         <div className="mt-4 flex min-h-16 flex-wrap content-start gap-2" aria-label={`${recipe.title}特点`}>
-          {recipe.featureTags.map(tag => <span key={tag} className="rounded-full bg-[#fff2e8] px-3 py-1.5 text-xs font-bold text-[#a74e2b]">{tag}</span>)}
+          {recipe.featureTags.slice(0, 2).map(tag => <span key={tag} className="rounded-full bg-[#fff2e8] px-3 py-1.5 text-xs font-bold text-[#a74e2b]">{tag}</span>)}
         </div>
       </Link>
       <div className="mt-auto flex items-end justify-between gap-3 border-t pt-4">
-        <div className="space-y-1.5 text-xs text-muted-foreground"><DifficultyStars difficulty={recipe.difficulty} /><p>{recipe.weeklyLikes ? `本周 ${recipe.weeklyLikes} 人点赞` : "本周还没有点赞"}</p></div>
+        <div className="space-y-1.5 text-xs text-muted-foreground"><DifficultyStars difficulty={recipe.difficulty} /><p>{recipe.weeklyLikes ? `本周 ${recipe.weeklyLikes} 人点赞` : "暂无点赞"}</p></div>
         <div className="flex gap-1.5"><LikeButton slug={recipe.slug} initialCount={recipe.likes} compact /><FavoriteButton slug={recipe.slug} className="size-10" /></div>
       </div>
     </article>

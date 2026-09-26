@@ -60,7 +60,7 @@ function FavoritesContent({ recipes }: { recipes: Recipe[] }) {
           <Heart className="absolute -right-1 top-2 size-9 rotate-12 fill-primary text-primary" aria-hidden="true" />
         </div>
         <h2 className="mt-6 text-2xl font-black tracking-tight md:text-3xl">还没有收藏的菜</h2>
-        <p className="mx-auto mt-3 max-w-md leading-7 text-muted-foreground">遇到想做的，就点一下小爱心放进这里。下次不用再找，打开就能继续准备。</p>
+        <p className="mx-auto mt-3 max-w-md leading-7 text-muted-foreground">点菜谱上的爱心，下次打开就能继续准备。</p>
         <Link href="/discover" className="mt-7 inline-flex h-13 items-center gap-2 rounded-full bg-primary px-6 font-bold text-white transition hover:bg-[#da4d28]">
           去看看菜谱 <ArrowRight className="size-4" />
         </Link>
@@ -90,7 +90,7 @@ function FavoritesContent({ recipes }: { recipes: Recipe[] }) {
 
       {unavailableCount > 0 && (
         <div className="mt-5 rounded-[20px] border border-dashed bg-card p-4 text-sm text-muted-foreground" role="status">
-          <p>有 {unavailableCount} 道曾收藏的菜目前暂不可用。它们不会影响其他收藏的浏览。</p>
+          <p>有 {unavailableCount} 道收藏暂不可用，不影响其他菜谱。</p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {unavailableSlugs.map((slug) => (
               <li key={slug} className="flex min-w-0 items-center justify-between gap-3 rounded-[14px] bg-muted/70 px-3 py-2">

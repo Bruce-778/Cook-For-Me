@@ -95,7 +95,7 @@ export default async function RecipePage({ params }: PageProps) {
           <section id="steps" className="scroll-mt-28">
             <p className="mb-1 text-sm font-bold text-primary">STEP BY STEP</p>
             <h2 className="text-2xl font-black tracking-tight sm:text-3xl">一步一步，慢慢做好</h2>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">以下文字用量按原配方 {recipe.servings} 人份。改变人数后，食材清单会换算；分次用量须按相同比例分配，火候与时间以实际成熟状态为准。</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">按原配方 {recipe.servings} 人份；换算后请按比例取料，时间以成熟状态为准。</p>
             <div className="relative mt-7 space-y-5 before:absolute before:bottom-10 before:left-6 before:top-10 before:w-px before:bg-border sm:before:left-7">
               {recipe.steps.map((step, index) => (
                 <article key={step.title} className="relative rounded-[24px] border bg-card p-5 pl-[4.5rem] card-shadow sm:p-7 sm:pl-[5.5rem]">
@@ -124,8 +124,8 @@ export default async function RecipePage({ params }: PageProps) {
               {recipe.failurePoints.map(point=><div key={point} className="flex gap-4 rounded-[22px] border border-[#b83e32]/20 bg-[#fff2ee] p-5"><span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#b83e32]/10 text-destructive"><CircleAlert className="size-5" /></span><div><h3 className="font-black">常见翻车点</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{point}</p></div></div>)}
               <div className="flex gap-4 rounded-[22px] border bg-[#edf5e8] p-5 sm:col-span-2"><ShieldCheck className="size-6 shrink-0 text-[#456341]"/><div><h3 className="font-black">食品安全</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{recipe.safetyNote}</p></div></div>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">{recipe.bilibiliVideoUrl&&<a href={recipe.bilibiliVideoUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />观看 B 站同名做法</a>}<a href={recipe.bilibiliSearchUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />{recipe.bilibiliVideoUrl?"搜索更多做法":"去 B 站搜索同名做法"}</a></div>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">{recipe.bilibiliVideoUrl?`收录资料：${recipe.videoTitle} · ${recipe.videoCreator}。${recipe.videoVerifiedAt ? `历史播放核验记录：${recipe.videoVerifiedAt}。` : `标题与作者核对：${recipe.videoMetadataCheckedAt}；尚未完成完整播放核验。`}`:"暂未收录具体视频直链，当前提供同名搜索入口。"} 视频配方可能与本站不同，请勿混用两套用量；烹饪时以本站完整步骤、食材成熟状态与食品安全提示判断。</p>
+            <div className="mt-5 flex flex-wrap gap-3">{recipe.bilibiliVideoUrl&&<a href={recipe.bilibiliVideoUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />看 B 站做法</a>}<a href={recipe.bilibiliSearchUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center gap-2 rounded-2xl border bg-card px-5 font-bold transition hover:border-primary hover:text-primary"><PlayCircle className="size-5" />{recipe.bilibiliVideoUrl?"搜更多做法":"去 B 站搜索"}</a></div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">{recipe.bilibiliVideoUrl?`收录：${recipe.videoTitle} · ${recipe.videoCreator}。${recipe.videoVerifiedAt ? `播放核验：${recipe.videoVerifiedAt}。` : `标题核对：${recipe.videoMetadataCheckedAt}，未完成播放核验。`}`:"暂未收录具体视频，提供同名搜索入口。"} 视频用量可能不同，请以本站步骤、成熟状态和安全提示为准。</p>
           </section>
 
           <section>
@@ -136,7 +136,7 @@ export default async function RecipePage({ params }: PageProps) {
                 <ShieldCheck className={`mt-0.5 size-6 shrink-0 ${recipe.editorialStatus==="reviewed"?"text-[#4f7b48]":"text-[#b67d08]"}`} />
                 <div>
                   <h3 className="font-black">{recipe.editorialStatus==="reviewed"?`已于 ${recipe.reviewedAt} 完成逐项复核`:"这道菜尚未完成逐道实做复核"}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{recipe.editorialStatus==="reviewed"?"已核对食材总量、分步取用、火候、计时、完成状态和食品安全。":"现有食材与步骤通过了结构检查，具体用量和实际耗时仍需实做校对。"} 不同灶具和锅具升温速度不同，请同时观察步骤中的成熟状态。</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{recipe.editorialStatus==="reviewed"?"已核对用量、火候、计时、完成状态和安全。":"已通过结构检查，仍需实做校对。"} 不同灶具升温不同，请看步骤中的成熟状态。</p>
                 </div>
               </div>
               <ul className="mt-5 space-y-2 border-t pt-4 text-sm leading-6">

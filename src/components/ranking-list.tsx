@@ -96,7 +96,7 @@ function PodiumCard({ recipe, rank }: { recipe: Recipe; rank: number }) {
 }
 
 export function RankingList({ recipes }: { recipes: Recipe[] }) {
-  if (recipes.length === 0) return <section className="mt-8 rounded-[28px] border border-dashed bg-card px-6 py-16 text-center"><div className="text-5xl">🥢</div><h2 className="mt-4 text-2xl font-black">本周还没有真实点赞</h2><p className="mt-2 text-muted-foreground">所有菜从 0 开始。去菜谱详情点下第一颗真心吧。</p><Link href="/discover" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-bold text-white">发现菜谱</Link></section>;
+  if (recipes.length === 0) return <section className="mt-8 rounded-[28px] border border-dashed bg-card px-6 py-16 text-center"><div className="text-5xl">🥢</div><h2 className="mt-4 text-2xl font-black">本周还没有点赞</h2><p className="mt-2 text-muted-foreground">去发现菜谱，点下第一颗心。</p><Link href="/discover" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-bold text-white">发现菜谱</Link></section>;
   const topThree = recipes.slice(0, 3);
   const rest = recipes.slice(3, 10);
 
@@ -110,10 +110,10 @@ export function RankingList({ recipes }: { recipes: Recipe[] }) {
         <section className="mt-12 md:mt-16" aria-labelledby="weekly-list-heading">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="flex items-center gap-1.5 text-sm font-bold text-[#5e8557]"><ChefHat className="size-4" />这一周也很受欢迎</p>
+              <p className="flex items-center gap-1.5 text-sm font-bold text-[#5e8557]"><ChefHat className="size-4" />也很受欢迎</p>
               <h2 id="weekly-list-heading" className="mt-1 text-2xl font-black tracking-tight md:text-3xl">本周 Top 10</h2>
             </div>
-            <span className="hidden items-center gap-1.5 rounded-full bg-card px-4 py-2 text-xs font-bold text-muted-foreground shadow-sm sm:flex"><Sparkles className="size-3.5 text-primary" />每日滚动更新</span>
+            <span className="hidden items-center gap-1.5 rounded-full bg-card px-4 py-2 text-xs font-bold text-muted-foreground shadow-sm sm:flex"><Sparkles className="size-3.5 text-primary" />每日更新</span>
           </div>
 
           <ol className="mt-6 grid gap-3 lg:grid-cols-2 lg:gap-4">

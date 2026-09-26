@@ -299,18 +299,18 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
         <section className="order-1 min-w-0 lg:order-2">
           {restored && (
             <div className="mb-4 flex items-start justify-between gap-3 rounded-2xl border border-[#bcd2b7] bg-[#eef7ea] px-4 py-3 text-sm text-[#456341]" role="status">
-              <span><strong>已恢复上次进度。</strong> 你可以从第 {currentStep + 1} 步继续。</span>
+              <span><strong>已恢复进度。</strong> 从第 {currentStep + 1} 步继续。</span>
               <button className="shrink-0 font-bold underline underline-offset-4" onClick={() => setRestored(false)}>知道了</button>
             </div>
           )}
           {wakeLockUnavailable && (
             <div className="mb-4 flex gap-3 rounded-2xl border border-[#efd6a0] bg-[#fff6d9] px-4 py-3 text-sm" role="status">
               <CircleAlert className="mt-0.5 size-5 shrink-0 text-[#9d6e16]" />
-              <span>当前浏览器无法自动保持屏幕常亮，烹饪时请暂时关闭自动锁屏。</span>
+              <span>屏幕无法自动常亮，请暂时关闭自动锁屏。</span>
             </div>
           )}
 
-          {servings !== recipe.servings && <p className="mb-4 rounded-2xl border bg-[#fff6d9] p-4 text-sm leading-6">你选择了 {servings} 人份。食材清单和已标注的分步用量按 {(servings / recipe.servings).toFixed(2)} 倍换算，但下方文字中的克数、毫升仍是原配方 {recipe.servings} 人份。分次取料请按相同比例分配；火候与时间不能按人数等倍增加。</p>}
+          {servings !== recipe.servings && <p className="mb-4 rounded-2xl border bg-[#fff6d9] p-4 text-sm leading-6">已换算为 {servings} 人份；文字中的克数、毫升仍按原配方，分次取料按比例分配，时间按成熟状态调整。</p>}
           <article className="overflow-hidden rounded-[28px] border bg-card soft-shadow md:rounded-[34px]">
             <div className="border-b bg-[linear-gradient(135deg,#fff0e2,#fffaf3_65%)] px-5 py-6 md:px-8 md:py-8">
               <div className="mb-4 flex items-center justify-between gap-3">
@@ -323,7 +323,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
             <div className="space-y-6 px-5 py-6 md:px-8 md:py-8">
               {stepIngredients.length > 0 && (
                 <div>
-                  <p className="mb-3 flex items-center gap-2 text-sm font-black text-muted-foreground"><Utensils className="size-4 text-primary" />本步涉及的食材（回锅不重复加料）</p>
+                  <p className="mb-3 flex items-center gap-2 text-sm font-black text-muted-foreground"><Utensils className="size-4 text-primary" />本步食材（回锅不重复）</p>
                   <div className="flex flex-wrap gap-2">
                     {stepIngredients.map((ingredient) => <span key={ingredient.name} className="rounded-full border bg-[#fffaf3] px-3.5 py-2 text-sm font-bold">{ingredient.name}{ingredient.amount && <strong className="ml-1.5 text-primary">{ingredient.amount}</strong>}</span>)}
                   </div>
@@ -342,7 +342,7 @@ export function CookingMode({ recipe, servings }: { recipe: Recipe; servings: nu
               {step.safety && <div className="rounded-[22px] border border-[#efc8bd] bg-[#fff2ee] p-4 text-sm font-semibold leading-6 text-[#8b3d32]">安全提醒：{step.safety}</div>}
 
               <div className="rounded-[22px] border border-[#bfd7ba] bg-[#eef7ea] p-4 md:p-5">
-                <p className="mb-2 flex items-center gap-2 text-sm font-black text-[#52764d]"><Check className="size-5" />做到什么程度算完成？</p>
+                <p className="mb-2 flex items-center gap-2 text-sm font-black text-[#52764d]"><Check className="size-5" />完成标准</p>
                 <p className="text-[17px] font-semibold leading-7 text-[#324b30] md:text-[18px]">{step.cue}</p>
               </div>
             </div>

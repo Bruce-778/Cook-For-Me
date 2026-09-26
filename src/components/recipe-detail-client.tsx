@@ -113,7 +113,7 @@ function IngredientChecklist({ recipe, servings }: { recipe: Recipe; servings: n
         <div>
           <p className="mb-1 text-sm font-bold text-primary">INGREDIENTS</p>
           <h2 className="text-2xl font-black tracking-tight sm:text-3xl">准备好这些食材</h2>
-          <p className="mt-2 text-sm text-muted-foreground">当前为 {servings} 人份，点一下就能标记已经备好的食材。</p>
+          <p className="mt-2 text-sm text-muted-foreground">当前 {servings} 人份 · 点选已备食材。</p>
         </div>
         {checked.length > 0 && (
           <button type="button" onClick={() => update([])} className="shrink-0 text-sm font-bold text-muted-foreground transition hover:text-primary">
@@ -208,8 +208,8 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
       <aside className="rounded-[26px] border bg-card p-5 card-shadow lg:sticky lg:top-24">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-muted-foreground">这次做几人份？</p>
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground"><Users className="size-4" />食材会自动换算</div>
+            <p className="text-sm font-bold text-muted-foreground">用餐人数</p>
+            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground"><Users className="size-4" />清单自动换算</div>
           </div>
           <div className="flex items-center rounded-full border bg-[#fff9f0] p-1">
             <button type="button" onClick={() => setServings((value) => Math.max(1, value - 1))} disabled={servings === 1} aria-label="减少一人份" className="grid size-10 place-items-center rounded-full transition hover:bg-secondary disabled:opacity-35"><Minus className="size-4" /></button>
@@ -217,7 +217,7 @@ export function RecipeDetailClient({ recipe, variant = "workspace" }: { recipe: 
             <button type="button" onClick={() => setServings((value) => Math.min(8, value + 1))} disabled={servings === 8} aria-label="增加一人份" className="grid size-10 place-items-center rounded-full transition hover:bg-secondary disabled:opacity-35"><Plus className="size-4" /></button>
           </div>
         </div>
-        {servings !== recipe.servings && <p className="mt-4 text-xs leading-5 text-muted-foreground">已换算食材清单；下方步骤文字仍按原配方 {recipe.servings} 人份说明，分次取料请按 {(servings / recipe.servings).toFixed(2)} 倍分配。烹饪时间不按人数等倍变化。</p>}
+        {servings !== recipe.servings && <p className="mt-4 text-xs leading-5 text-muted-foreground">已按 {servings} 人换算清单；步骤文字仍按 {recipe.servings} 人份，火候和时间不变。</p>}
         <div className="my-5 h-px bg-border" />
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground">
           <div className="rounded-2xl bg-[#fff7ed] p-3"><Clock3 className="mx-auto mb-1 size-5 text-primary" /><strong className="block text-sm text-foreground">{recipe.prepMinutes} 分钟</strong>准备</div>
