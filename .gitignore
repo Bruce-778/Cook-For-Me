@@ -26,6 +26,14 @@
 __pycache__/
 *.py[cod]
 
+# Local-only agent instructions and internal review material
+/AGENTS.md
+/CLAUDE.md
+/Cook-for-Me-开发提示词.md
+/docs/audit-2026-07-16/
+/docs/content-audit-*.md
+/docs/prelaunch-audit-*.md
+
 # misc
 .DS_Store
 *.pem

@@ -62,7 +62,7 @@ CHECK_BILIBILI_ONLINE=1 pnpm validate:videos
 
 启动本地服务后执行 `LOCAL_BASE_URL=http://localhost:3001 pnpm test:local`（备用端口改为 3101）。它检查全部菜谱详情/烹饪页、详情 API、分页、盲盒忌口与错误边界，不调用付费 AI、不写入点赞。
 
-联网检查也不代替完整播放或实做。2026-09-26 的内容修正见 [内容检查记录](docs/content-audit-2026-09-26.md)；本次上线前本地验收见 [上线前验收记录](docs/prelaunch-audit-2026-09-27.md)。
+联网检查也不代替完整播放或实做。菜谱和视频的持续维护流程见 [内容维护说明](docs/content-maintenance.md)。
 
 ## 当前页面
 
