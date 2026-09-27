@@ -20,6 +20,12 @@
 # production
 /build
 
+# local generated submission/demo assets
+/output/
+/scripts/build_redcowork_*.py
+__pycache__/
+*.py[cod]
+
 # misc
 .DS_Store
 *.pem
