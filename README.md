@@ -17,6 +17,8 @@ pnpm dev
 
 要启用 AI 助手，复制 `.env.example` 为 `.env.local`，填入服务端 `DEEPSEEK_API_KEY`。没有密钥时接口会返回站内保守推荐。密钥不得使用 `NEXT_PUBLIC_` 前缀，也不得提交到 Git。
 
+本地可打开 [AI 运行状态](http://localhost:3001/ai-status) 查看模型、接口地址、密钥是否配置、Supabase 变量状态，并点击“测试 DeepSeek”。页面只显示密钥长度和不可逆指纹，不显示完整 API Key。生产环境如需查看脱敏诊断状态，设置服务端变量 `AI_DIAGNOSTICS_TOKEN`，再在诊断页输入该令牌；部署平台里 API Key 显示锁定是正常的，旧密钥不能从网页恢复，只能重新设置或轮换。
+
 ## Supabase 与真实点赞
 
 1. 为 Cook for Me 新建独立 Supabase 项目，在 Auth 设置中启用 Anonymous Sign-Ins；生产环境同时启用 Turnstile/hCaptcha 和匿名注册限流。
