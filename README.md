@@ -74,6 +74,8 @@ CHECK_BILIBILI_ONLINE=1 pnpm validate:videos
 - `/cook/[slug]`：沉浸式逐步烹饪、计时和进度恢复
 - `/ranking`：最近热门排行
 - `/favorites`：浏览器本地收藏
+- `/sitemap.xml`：只收录正式复核菜谱和公开内容页
+- `/robots.txt`：屏蔽 API、收藏页和维护用的 AI 状态页
 
 ## 数据与隐私
 
